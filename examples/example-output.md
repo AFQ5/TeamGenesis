@@ -441,6 +441,115 @@ All agents must update `CLAUDE.md` when making decisions.
 
 ---
 
+## 13. Session Completion Log
+
+At the end of each work session, every agent must submit a completion log summarizing their work.
+
+**Format:** JSON
+
+**Log location:** `SESSION_LOGS/{YYYY-MM-DD}/{agent-role}.json`
+
+**JSON schema per agent:**
+```json
+{
+  "agent_role": "Agent Role Name",
+  "status": "completed | blocked | escalated",
+  "scope": "One-liner of assigned task",
+  "work_completed": [
+    {
+      "task": "Description of task",
+      "status": "completed | in_progress | blocked",
+      "deliverables": ["file/path/1", "file/path/2"]
+    }
+  ],
+  "files_touched": {
+    "created": [],
+    "modified": [],
+    "deleted": []
+  },
+  "summary": {
+    "key_achievements": [],
+    "blockers_encountered": [],
+    "escalations": []
+  },
+  "test_coverage": {
+    "tests_written": 0,
+    "tests_passing": true
+  },
+  "approval_status": {
+    "plans_submitted": 0,
+    "plans_approved": 0,
+    "plans_rejected": 0
+  }
+}
+```
+
+**Example — Implementer session log:**
+```json
+{
+  "agent_role": "Implementer",
+  "status": "completed",
+  "scope": "Implement JWT auth middleware and task CRUD routes",
+  "work_completed": [
+    {
+      "task": "JWT authentication middleware",
+      "status": "completed",
+      "deliverables": ["src/middleware/auth.ts"]
+    },
+    {
+      "task": "Task CRUD routes",
+      "status": "completed",
+      "deliverables": ["src/routes/tasks.ts", "src/services/task.service.ts"]
+    },
+    {
+      "task": "Refresh token rotation",
+      "status": "blocked",
+      "deliverables": []
+    }
+  ],
+  "files_touched": {
+    "created": ["src/middleware/auth.ts", "src/routes/tasks.ts", "src/services/task.service.ts"],
+    "modified": ["src/routes/index.ts"],
+    "deleted": []
+  },
+  "summary": {
+    "key_achievements": [
+      "JWT middleware validates tokens and attaches user to request",
+      "Task CRUD supports create, read, update, delete with team scoping",
+      "4 unit tests and 2 integration tests written, all passing"
+    ],
+    "blockers_encountered": [
+      "Refresh token rotation requires Architect decision on token storage (Redis vs DB)"
+    ],
+    "escalations": [
+      "RFC submitted: Add Redis for token storage"
+    ]
+  },
+  "test_coverage": {
+    "tests_written": 6,
+    "tests_passing": true
+  },
+  "approval_status": {
+    "plans_submitted": 2,
+    "plans_approved": 2,
+    "plans_rejected": 0
+  }
+}
+```
+
+**Approval flow:**
+1. Agent completes session work and writes their completion log
+2. Critic reviews the log for accuracy, completeness, and file alignment
+3. Critic approves or requests revisions
+4. Approved log is committed alongside code changes
+
+**Relationship to Section 11:**
+- Section 11 (CLAUDE.md) captures *architectural decisions* made live during work
+- Section 13 (Session Logs) captures *work artifacts and completion status* at session end
+- The Critic bridges them: reviews session logs and escalates significant patterns to CLAUDE.md
+
+---
+
 ## High-Leverage One-Liners
 
 - Treat `PROJECT_BRIEF.md` as law; never invent requirements.

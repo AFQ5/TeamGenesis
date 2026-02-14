@@ -201,6 +201,93 @@ All agents must update `CLAUDE.md` when making architectural decisions, technolo
 
 ---
 
+## 13. Session Completion Log
+
+At the end of each work session, every agent must submit a completion log summarizing their work.
+
+**Format:** {{SESSION_LOG_FORMAT}} (JSON | Markdown | Both)
+
+**Log location:** `SESSION_LOGS/{{SESSION_DATE}}/{{AGENT_ROLE}}.{{LOG_EXT}}`
+
+{{IF SESSION_LOG_FORMAT == "JSON" OR SESSION_LOG_FORMAT == "Both"}}
+**JSON schema per agent:**
+```json
+{
+  "agent_role": "{{AGENT_ROLE_NAME}}",
+  "status": "completed | blocked | escalated",
+  "scope": "One-liner of assigned task",
+  "work_completed": [
+    {
+      "task": "Description of task",
+      "status": "completed | in_progress | blocked",
+      "deliverables": ["file/path/1", "file/path/2"]
+    }
+  ],
+  "files_touched": {
+    "created": [],
+    "modified": [],
+    "deleted": []
+  },
+  "summary": {
+    "key_achievements": [],
+    "blockers_encountered": [],
+    "escalations": []
+  },
+  "test_coverage": {
+    "tests_written": 0,
+    "tests_passing": true
+  },
+  "approval_status": {
+    "plans_submitted": 0,
+    "plans_approved": 0,
+    "plans_rejected": 0
+  }
+}
+```
+{{END_IF}}
+
+{{IF SESSION_LOG_FORMAT == "Markdown" OR SESSION_LOG_FORMAT == "Both"}}
+**Markdown format per agent:**
+```markdown
+### Agent: {{AGENT_ROLE_NAME}}
+- **Status:** completed | blocked | escalated
+- **Scope:** One-liner of assigned task
+
+#### Work Completed
+- [x] Task description → `deliverable/file/path`
+
+#### Files Touched
+- **Created:** list of file paths
+- **Modified:** list of file paths
+- **Deleted:** list of file paths
+
+#### Summary
+**Achievements:** list of key accomplishments
+**Blockers:** list of blockers (or "None")
+**Escalations:** list of escalations (or "None")
+
+#### Test Coverage
+- Tests written: N
+- Tests passing: Yes/No
+
+#### Approvals
+- Plans submitted: N | Approved: N | Rejected: N
+```
+{{END_IF}}
+
+**Approval flow:**
+1. Agent completes session work and writes their completion log
+2. Critic reviews the log for accuracy, completeness, and file alignment
+3. Critic approves or requests revisions
+4. Approved log is committed alongside code changes
+
+**Relationship to Section 11:**
+- Section 11 (CLAUDE.md) captures *architectural decisions* made live during work
+- Section 13 (Session Logs) captures *work artifacts and completion status* at session end
+- The Critic bridges them: reviews session logs and escalates significant patterns to CLAUDE.md
+
+---
+
 ## High-Leverage One-Liners
 
 - Treat `{{SOURCE_OF_TRUTH}}` as law; never invent requirements.

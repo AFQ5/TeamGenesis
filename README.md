@@ -6,7 +6,7 @@ When you spin up a multi-agent team, agents drift, guess, overbuild, and lack cl
 
 ## What It Generates
 
-A complete Agent Team Prompt following the **7-Point Governance Architecture**:
+A complete Agent Team Prompt following the **8-Point Governance Architecture**:
 
 1. **Project Context** — Mission boundary, stack, source of truth
 2. **Source of Truth Rule** — Authority hierarchy (the spec overrides all assumptions)
@@ -15,6 +15,7 @@ A complete Agent Team Prompt following the **7-Point Governance Architecture**:
 5. **Approval Protocol** — No code before plan approval
 6. **Interface Contracts** — Exact I/O schemas between agents with concrete examples
 7. **Operational Constraints** — Security invariants, dependency policy, simplicity rules
+8. **Session Completion Log** — Per-agent work summaries (JSON/Markdown) so the team remembers what was done
 
 Plus: Change Control (RFC process), Documentation Sync, Budget Constraints, and Two-Layer Prompting architecture.
 
@@ -49,6 +50,7 @@ Then provide:
 - **Security Invariants** (optional)
 - **Project Type** (optional — auto-detected from stack)
 - **Custom Roles** (optional — override default agent roles)
+- **Session Log Format** (optional — `JSON`, `Markdown`, or `Both`; default: `JSON`)
 
 The skill writes the generated prompt to `./AGENT_TEAM_PROMPT.md` (configurable).
 
@@ -70,7 +72,7 @@ You can also define **custom roles** — TeamGenesis applies the same governance
 team-genesis/
 ├── SKILL.md                          # Core skill (frontmatter + instructions)
 ├── references/
-│   ├── governance-architecture.md    # 7-Point Architecture + Quality Multipliers
+│   ├── governance-architecture.md    # 8-Point Architecture + Quality Multipliers
 │   ├── prompt-template.md            # Output template with placeholders
 │   └── project-type-profiles.md      # Role configs per project type
 └── examples/

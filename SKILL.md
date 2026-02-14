@@ -25,7 +25,8 @@ Ask the user for all inputs in a **single message**. Present them as a clear lis
 5. **Security Invariants** — Non-negotiable security rules. Default: no secrets in code, validate all user input, parameterized DB queries, escape HTML output.
 6. **Project Type** — One of: `web-app`, `api-service`, `cli-tool`, `library`, `data-pipeline`. Default: inferred from tech stack.
 7. **Custom Roles** — User-defined agent roles to use instead of (or in addition to) the defaults. Default: auto-selected based on project type.
-8. **Output file path** — Where to write the generated prompt. Default: `./AGENT_TEAM_PROMPT.md`.
+8. **Session Log Format** — Format for agent completion logs: `JSON` (default, machine-readable), `Markdown` (human-readable), or `Both`. Default: `JSON`.
+9. **Output file path** — Where to write the generated prompt. Default: `./AGENT_TEAM_PROMPT.md`.
 
 If the user provides all inputs upfront (e.g., in the initial message), skip the question step and proceed directly to generation.
 
@@ -62,7 +63,7 @@ Read the following reference files to build the output:
 2. `references/prompt-template.md` — Get the output structure and fill in placeholders
 3. `examples/example-output.md` — Calibrate quality, specificity, and format
 
-**Fill in the template** with the user's inputs and selected roles. The generated prompt must contain these 12 sections:
+**Fill in the template** with the user's inputs and selected roles. The generated prompt must contain these 13 sections:
 
 1. **Project Context** — Name, goal, stack, source of truth
 2. **Source of Truth Rule** — Authority hierarchy and conflict resolution
@@ -76,6 +77,7 @@ Read the following reference files to build the output:
 10. **Security Invariants** — Unchangeable rules
 11. **Documentation Sync Rule** — CLAUDE.md update format
 12. **Budget and Simplicity Constraints** — Simplest implementation, no framework bloat
+13. **Session Completion Log** — Per-agent work summary at session end (format per user selection: JSON/Markdown/Both)
 
 Plus appendices: High-Leverage One-Liners, Prompting Architecture (Two-Layer).
 

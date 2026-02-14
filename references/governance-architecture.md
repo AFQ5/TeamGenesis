@@ -1,6 +1,6 @@
 # Governance Architecture Reference
 
-This document defines the **7-Point Governance Architecture** and **6 Quality Multipliers** that form the foundation of every TeamGenesis-generated Agent Team Prompt.
+This document defines the **8-Point Governance Architecture** and **6 Quality Multipliers** that form the foundation of every TeamGenesis-generated Agent Team Prompt.
 
 Claude: Read this file to understand the principles behind each section you generate. Do not copy this text verbatim into the output — use it to inform the depth and rigor of what you write.
 
@@ -144,9 +144,43 @@ Claude: Read this file to understand the principles behind each section you gene
 
 ---
 
+### Point 8: Session Completion Log
+
+**What it is:** A structured summary that each agent writes at the end of a work session, recording what was done, which files were touched, and what remains.
+
+**Why it matters:** Agents don't persist between sessions. Without a completion log, the next team (or a resumed session) has no record of what was accomplished, what's blocked, or what decisions were made tactically. The Session Completion Log is the team's memory.
+
+**Must include per agent:**
+- Agent role and session status (completed / blocked / escalated)
+- Scope — one-liner of assigned task
+- Work completed — list of tasks with status and deliverable file paths
+- Files touched — created, modified, deleted
+- Summary — key achievements, blockers encountered, escalations made
+- Test coverage — tests written, passing status
+- Approval status — plans submitted / approved / rejected
+
+**Log location:** `SESSION_LOGS/{session-date}/{agent-role}.{json|md}`
+
+**Format options:** JSON (machine-readable, default), Markdown (human-readable), or Both.
+
+**Relationship to Point 7 (Documentation Sync):**
+- Point 7 captures **architectural decisions** logged live during work (strategic — goes in CLAUDE.md)
+- Point 8 captures **work artifacts and completion status** at session end (tactical — goes in SESSION_LOGS/)
+- The Critic bridges both: reviews session logs for accuracy, escalates significant patterns back to CLAUDE.md
+
+**Approval flow:**
+1. Agent completes session work and writes their completion log
+2. Critic reviews the log for accuracy, completeness, and file alignment
+3. Critic approves or requests revisions
+4. Approved log is committed alongside code changes
+
+**Anti-pattern:** Vague logs like "worked on auth." Instead: "Implemented JWT middleware (`src/middleware/auth.ts`), created 4 unit tests (all passing), blocked on refresh token rotation — needs Architect decision on token storage."
+
+---
+
 ## Quality Multipliers
 
-These six discipline layers complement the 7-Point Architecture. They are embedded throughout the generated prompt, not isolated in their own sections.
+These six discipline layers complement the 8-Point Architecture. They are embedded throughout the generated prompt, not isolated in their own sections.
 
 ### QM-1: Interface Contracts
 
