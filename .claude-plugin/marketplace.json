@@ -1,0 +1,17 @@
+{
+  "name": "team-genesis",
+  "owner": {
+    "name": "AFQ5"
+  },
+  "metadata": {
+    "description": "Generate enterprise-grade Agent Team prompts with governance architecture and team persistence",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "team-genesis",
+      "source": "./",
+      "description": "Generate enterprise-grade Agent Team prompts with governance architecture, anti-drift boundaries, approval gates, interface contracts, and agent persistence."
+    }
+  ]
+}
