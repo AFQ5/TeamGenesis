@@ -15,7 +15,7 @@ A complete Agent Team Prompt following the **8-Point Governance Architecture**:
 5. **Approval Protocol** — No code before plan approval
 6. **Interface Contracts** — Exact I/O schemas between agents with concrete examples
 7. **Operational Constraints** — Security invariants, dependency policy, simplicity rules
-8. **Session Completion Log** — Per-agent work summaries (JSON/Markdown) so the team remembers what was done
+8. **Agent Persistence** — Save agents to `TEAM_AGENTS.json` (roles, prompts, goals, completed work) for reuse
 
 Plus: Change Control (RFC process), Documentation Sync, Budget Constraints, and Two-Layer Prompting architecture.
 
@@ -50,9 +50,17 @@ Then provide:
 - **Security Invariants** (optional)
 - **Project Type** (optional — auto-detected from stack)
 - **Custom Roles** (optional — override default agent roles)
-- **Session Log Format** (optional — `JSON`, `Markdown`, or `Both`; default: `JSON`)
+The skill writes the generated prompt to `./AGENT_TEAM_PROMPT.md` and saves agents to `./TEAM_AGENTS.json`.
 
-The skill writes the generated prompt to `./AGENT_TEAM_PROMPT.md` (configurable).
+## Agent Reuse
+
+TeamGenesis saves your agents after each session. When you run `/team-genesis` again, it detects `TEAM_AGENTS.json` and asks:
+
+- **Continue** — Reload the same agents, pick up where they left off
+- **Update** — Same agents, new goals (e.g., add a feature), prior work preserved
+- **New team** — Generate from scratch, archive existing team
+
+Each agent's JSON snapshot includes their role, purpose, scope, boundaries, goals, interface contracts, completed work, files touched, and blockers — everything needed to resume without context loss.
 
 ## Supported Project Types
 

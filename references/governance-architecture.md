@@ -144,37 +144,49 @@ Claude: Read this file to understand the principles behind each section you gene
 
 ---
 
-### Point 8: Session Completion Log
+### Point 8: Agent Persistence (Save & Reuse)
 
-**What it is:** A structured summary that each agent writes at the end of a work session, recording what was done, which files were touched, and what remains.
+**What it is:** A JSON snapshot that saves each agent's full identity — role, purpose, prompt, scope, boundaries, goals, interface contracts, and completed work — so the same team can be reloaded later.
 
-**Why it matters:** Agents don't persist between sessions. Without a completion log, the next team (or a resumed session) has no record of what was accomplished, what's blocked, or what decisions were made tactically. The Session Completion Log is the team's memory.
+**Why it matters:** Agents are ephemeral. When a session ends, agents are gone. But the team's composition, expertise, and history shouldn't be lost. Saving agents to a JSON file lets you:
+- **Continue** — reload the same agents to finish blocked or in-progress work
+- **Update** — same agents, new goals, but they know what was already built
+- **New feature** — reuse the team structure for a different feature in the same project
+
+**Saved file:** `TEAM_AGENTS.json` — one file for the entire team.
 
 **Must include per agent:**
-- Agent role and session status (completed / blocked / escalated)
-- Scope — one-liner of assigned task
-- Work completed — list of tasks with status and deliverable file paths
-- Files touched — created, modified, deleted
-- Summary — key achievements, blockers encountered, escalations made
-- Test coverage — tests written, passing status
-- Approval status — plans submitted / approved / rejected
+- `role` — Role name (Architect, Implementer, etc.)
+- `purpose` — One-line purpose statement (the agent's identity)
+- `scope` — Owned files and modules
+- `boundaries` — "Must NOT" rules (the agent's hard limits)
+- `goals` — What the agent was tasked with this session
+- `interface_contracts` — Who this agent sends to / receives from
+- `status` — completed / blocked / escalated
+- `work_completed` — Tasks with status and deliverable file paths
+- `files_touched` — Created / modified / deleted
+- `blockers` — What's preventing progress (if any)
 
-**Log location:** `SESSION_LOGS/{session-date}/{agent-role}.{json|md}`
+**Must include at team level:**
+- `project_name` — The project this team belongs to
+- `source_of_truth` — The spec file the team follows
+- `created` — When the team was first created
+- `last_session` — When the team last worked
+- `session_count` — How many sessions this team has run
 
-**Format options:** JSON (machine-readable, default), Markdown (human-readable), or Both.
+**Reuse workflow:**
+1. Session ends → each agent's snapshot is saved to `TEAM_AGENTS.json`
+2. User starts a new session and invokes `/team-genesis`
+3. TeamGenesis detects `TEAM_AGENTS.json` exists → asks: "Continue with existing team, update goals, or create new team?"
+4. If continue/update: loads the agents, preserves their history, assigns new goals
+5. If new team: generates from scratch (existing file is archived)
 
 **Relationship to Point 7 (Documentation Sync):**
-- Point 7 captures **architectural decisions** logged live during work (strategic — goes in CLAUDE.md)
-- Point 8 captures **work artifacts and completion status** at session end (tactical — goes in SESSION_LOGS/)
-- The Critic bridges both: reviews session logs for accuracy, escalates significant patterns back to CLAUDE.md
+- Point 7 captures **architectural decisions** in CLAUDE.md (strategic, human-readable)
+- Point 8 captures **the agents themselves** in TEAM_AGENTS.json (structural, machine-readable)
+- Together: CLAUDE.md explains *why*, TEAM_AGENTS.json explains *who did what*
 
-**Approval flow:**
-1. Agent completes session work and writes their completion log
-2. Critic reviews the log for accuracy, completeness, and file alignment
-3. Critic approves or requests revisions
-4. Approved log is committed alongside code changes
-
-**Anti-pattern:** Vague logs like "worked on auth." Instead: "Implemented JWT middleware (`src/middleware/auth.ts`), created 4 unit tests (all passing), blocked on refresh token rotation — needs Architect decision on token storage."
+**Anti-pattern:** Saving only the work log without the agent's identity. A log of "implemented auth" is useless without knowing the Implementer's scope, boundaries, and interface contracts. Save the full agent, not just its output.
 
 ---
 

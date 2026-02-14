@@ -25,8 +25,14 @@ Ask the user for all inputs in a **single message**. Present them as a clear lis
 5. **Security Invariants** — Non-negotiable security rules. Default: no secrets in code, validate all user input, parameterized DB queries, escape HTML output.
 6. **Project Type** — One of: `web-app`, `api-service`, `cli-tool`, `library`, `data-pipeline`. Default: inferred from tech stack.
 7. **Custom Roles** — User-defined agent roles to use instead of (or in addition to) the defaults. Default: auto-selected based on project type.
-8. **Session Log Format** — Format for agent completion logs: `JSON` (default, machine-readable), `Markdown` (human-readable), or `Both`. Default: `JSON`.
-9. **Output file path** — Where to write the generated prompt. Default: `./AGENT_TEAM_PROMPT.md`.
+8. **Output file path** — Where to write the generated prompt. Default: `./AGENT_TEAM_PROMPT.md`.
+
+**Before asking for inputs**, check if `TEAM_AGENTS.json` exists in the project root. If it does, ask the user:
+- **Continue** — Reload the same agents with their history, pick up where they left off
+- **Update** — Same agents, but modify goals for a new feature (history preserved)
+- **New team** — Generate from scratch (existing file is archived to `TEAM_AGENTS.{date}.json`)
+
+If continuing or updating, load the agents from the file and skip role selection (Step 2). Only ask for new/modified goals.
 
 If the user provides all inputs upfront (e.g., in the initial message), skip the question step and proceed directly to generation.
 
@@ -59,7 +65,7 @@ Read the role profiles from `references/project-type-profiles.md`.
 
 Read the following reference files to build the output:
 
-1. `references/governance-architecture.md` — Understand the 7-Point Architecture and Quality Multipliers
+1. `references/governance-architecture.md` — Understand the 8-Point Architecture and Quality Multipliers
 2. `references/prompt-template.md` — Get the output structure and fill in placeholders
 3. `examples/example-output.md` — Calibrate quality, specificity, and format
 
@@ -77,7 +83,7 @@ Read the following reference files to build the output:
 10. **Security Invariants** — Unchangeable rules
 11. **Documentation Sync Rule** — CLAUDE.md update format
 12. **Budget and Simplicity Constraints** — Simplest implementation, no framework bloat
-13. **Session Completion Log** — Per-agent work summary at session end (format per user selection: JSON/Markdown/Both)
+13. **Agent Persistence** — Save all agents (roles, prompts, goals, work completed) to `TEAM_AGENTS.json` for reuse
 
 Plus appendices: High-Leverage One-Liners, Prompting Architecture (Two-Layer).
 
@@ -86,16 +92,19 @@ Plus appendices: High-Leverage One-Liners, Prompting Architecture (Two-Layer).
 ## Step 4: Output the Result
 
 1. **Write the generated prompt** to the specified file path (default: `./AGENT_TEAM_PROMPT.md`) using the Write tool.
-2. **Show a summary** to the user containing:
+2. **Write `TEAM_AGENTS.json`** to the project root. This file saves every agent's full identity (role, purpose, scope, boundaries, goals, interface contracts) with empty `work_completed` and `files_touched` fields. Agents will populate these fields at session end.
+3. **Show a summary** to the user containing:
    - Project name and goal
    - Team composition (list of agent roles)
    - Number of interface contracts defined
    - Key security invariants
-   - Output file path
-3. **Suggest next steps:**
+   - Output file paths (`AGENT_TEAM_PROMPT.md` + `TEAM_AGENTS.json`)
+4. **Suggest next steps:**
    - Review the generated prompt and adjust roles/boundaries as needed
    - Create the Source of Truth file if it doesn't exist yet
    - Use the prompt when creating an Agent Team in Claude Code
+   - After the session, agents will auto-save their work to `TEAM_AGENTS.json`
+   - To reuse the team later, run `/team-genesis` again — it will detect the saved team
 
 ---
 
@@ -158,3 +167,13 @@ Every generated prompt **must** satisfy these criteria:
 2. Use custom roles instead of defaults, but keep core Critic role (maps to "Reviewer")
 3. Apply full governance structure to each custom role
 4. Ask for any missing required inputs
+
+### Example 4: Reuse existing team
+**User says:** "I want to add a notifications feature to TaskFlow"
+
+**What you do:**
+1. Detect `TEAM_AGENTS.json` exists — read it
+2. Ask: "I found your existing TaskFlow team (Architect, Implementer, Critic, API Designer, DevOps). Continue with this team, update goals, or create new?"
+3. User picks "Update" — load all agents with their prior work history
+4. Ask for new goals (e.g., "Add email + push notification system")
+5. Regenerate `AGENT_TEAM_PROMPT.md` with same agents, new goals, and `TEAM_AGENTS.json` updated with new goals while preserving work history

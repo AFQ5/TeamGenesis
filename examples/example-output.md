@@ -441,112 +441,236 @@ All agents must update `CLAUDE.md` when making decisions.
 
 ---
 
-## 13. Session Completion Log
+## 13. Agent Persistence (Save & Reuse)
 
-At the end of each work session, every agent must submit a completion log summarizing their work.
+At the end of each work session, save the entire team to `TEAM_AGENTS.json`. This file captures every agent's identity, goals, and completed work so the team can be reloaded later.
 
-**Format:** JSON
+**Save location:** `TEAM_AGENTS.json` (project root)
 
-**Log location:** `SESSION_LOGS/{YYYY-MM-DD}/{agent-role}.json`
+**At session end, the lead agent must update `TEAM_AGENTS.json`** with each agent's current status, completed work, files touched, and any blockers.
 
-**JSON schema per agent:**
+**At session start, if `TEAM_AGENTS.json` exists**, agents read it to understand their role, what was previously completed, and what's blocked.
+
+**Reuse scenarios:**
+- **Continue** — Same agents, same goals, pick up where they left off
+- **Update** — Same agents, new goals, prior work preserved
+- **New feature** — Same team composition, fresh goals, prior work archived
+
+**Example `TEAM_AGENTS.json` after first session:**
 ```json
 {
-  "agent_role": "Agent Role Name",
-  "status": "completed | blocked | escalated",
-  "scope": "One-liner of assigned task",
-  "work_completed": [
+  "team": {
+    "project_name": "TaskFlow",
+    "source_of_truth": "PROJECT_BRIEF.md",
+    "created": "2026-02-14",
+    "last_session": "2026-02-14",
+    "session_count": 1
+  },
+  "agents": [
     {
-      "task": "Description of task",
-      "status": "completed | in_progress | blocked",
-      "deliverables": ["file/path/1", "file/path/2"]
-    }
-  ],
-  "files_touched": {
-    "created": [],
-    "modified": [],
-    "deleted": []
-  },
-  "summary": {
-    "key_achievements": [],
-    "blockers_encountered": [],
-    "escalations": []
-  },
-  "test_coverage": {
-    "tests_written": 0,
-    "tests_passing": true
-  },
-  "approval_status": {
-    "plans_submitted": 0,
-    "plans_approved": 0,
-    "plans_rejected": 0
-  }
-}
-```
-
-**Example — Implementer session log:**
-```json
-{
-  "agent_role": "Implementer",
-  "status": "completed",
-  "scope": "Implement JWT auth middleware and task CRUD routes",
-  "work_completed": [
-    {
-      "task": "JWT authentication middleware",
+      "role": "Architect",
+      "purpose": "Define data models, API surface, system boundaries, and technology decisions for TaskFlow",
+      "scope": ["prisma/schema.prisma", "src/types/", "docs/architecture/"],
+      "boundaries": [
+        "Must NOT write implementation code",
+        "Must NOT approve plans without verifying security invariants"
+      ],
+      "goals": [
+        "Design Prisma schemas for users, tasks, teams, and permissions",
+        "Define REST endpoint structure and response formats",
+        "Establish authentication flow (JWT issuance, refresh, revocation)"
+      ],
+      "interface_contracts": {
+        "outputs_to": ["Implementer"],
+        "inputs_from": []
+      },
       "status": "completed",
-      "deliverables": ["src/middleware/auth.ts"]
+      "work_completed": [
+        {
+          "task": "Prisma schema with User, Task, Team models",
+          "status": "completed",
+          "deliverables": ["prisma/schema.prisma"]
+        },
+        {
+          "task": "TypeScript type definitions",
+          "status": "completed",
+          "deliverables": ["src/types/user.ts", "src/types/task.ts", "src/types/team.ts"]
+        },
+        {
+          "task": "Auth flow documentation",
+          "status": "completed",
+          "deliverables": ["docs/architecture/auth-flow.md"]
+        }
+      ],
+      "files_touched": {
+        "created": ["prisma/schema.prisma", "src/types/user.ts", "src/types/task.ts", "src/types/team.ts", "docs/architecture/auth-flow.md"],
+        "modified": [],
+        "deleted": []
+      },
+      "blockers": []
     },
     {
-      "task": "Task CRUD routes",
-      "status": "completed",
-      "deliverables": ["src/routes/tasks.ts", "src/services/task.service.ts"]
-    },
-    {
-      "task": "Refresh token rotation",
+      "role": "Implementer",
+      "purpose": "Write production code for API routes, middleware, business logic, and database operations",
+      "scope": ["src/routes/", "src/middleware/", "src/services/", "src/utils/"],
+      "boundaries": [
+        "Must NOT change Prisma schema without Architect approval",
+        "Must NOT add npm dependencies without RFC",
+        "Must NOT bypass authentication middleware"
+      ],
+      "goals": [
+        "Implement Express routes per approved plan",
+        "Write Prisma queries and business logic",
+        "Implement JWT authentication middleware"
+      ],
+      "interface_contracts": {
+        "outputs_to": ["Critic"],
+        "inputs_from": ["Architect", "API Designer"]
+      },
       "status": "blocked",
-      "deliverables": []
+      "work_completed": [
+        {
+          "task": "JWT authentication middleware",
+          "status": "completed",
+          "deliverables": ["src/middleware/auth.ts"]
+        },
+        {
+          "task": "Task CRUD routes",
+          "status": "completed",
+          "deliverables": ["src/routes/tasks.ts", "src/services/task.service.ts"]
+        },
+        {
+          "task": "Refresh token rotation",
+          "status": "blocked",
+          "deliverables": []
+        }
+      ],
+      "files_touched": {
+        "created": ["src/middleware/auth.ts", "src/routes/tasks.ts", "src/services/task.service.ts"],
+        "modified": ["src/routes/index.ts"],
+        "deleted": []
+      },
+      "blockers": ["Refresh token rotation requires Architect decision on token storage (Redis vs DB)"]
+    },
+    {
+      "role": "API Designer",
+      "purpose": "Define endpoint specifications, request/response schemas, error formats, and API documentation",
+      "scope": ["docs/api/", "src/schemas/"],
+      "boundaries": [
+        "Must NOT implement route handlers",
+        "Must NOT change database schema"
+      ],
+      "goals": [
+        "Write OpenAPI spec for all endpoints",
+        "Define Zod validation schemas",
+        "Standardize error response format"
+      ],
+      "interface_contracts": {
+        "outputs_to": ["Implementer"],
+        "inputs_from": ["Architect"]
+      },
+      "status": "completed",
+      "work_completed": [
+        {
+          "task": "OpenAPI specification",
+          "status": "completed",
+          "deliverables": ["docs/api/openapi.yaml"]
+        },
+        {
+          "task": "Zod validation schemas",
+          "status": "completed",
+          "deliverables": ["src/schemas/auth.schema.ts", "src/schemas/task.schema.ts", "src/schemas/team.schema.ts"]
+        }
+      ],
+      "files_touched": {
+        "created": ["docs/api/openapi.yaml", "src/schemas/auth.schema.ts", "src/schemas/task.schema.ts", "src/schemas/team.schema.ts", "docs/api/errors.md"],
+        "modified": [],
+        "deleted": []
+      },
+      "blockers": []
+    },
+    {
+      "role": "Critic",
+      "purpose": "Review plans for completeness, security compliance, testability, and edge case coverage",
+      "scope": ["Plan review", "approval decisions", "quality gates"],
+      "boundaries": [
+        "Must NOT write implementation code",
+        "Must NOT approve plans that skip test strategy"
+      ],
+      "goals": [
+        "Review every implementation plan before coding starts",
+        "Verify plans preserve all security invariants",
+        "Validate interface contracts between agents"
+      ],
+      "interface_contracts": {
+        "outputs_to": [],
+        "inputs_from": ["Implementer", "Architect"]
+      },
+      "status": "completed",
+      "work_completed": [
+        {
+          "task": "Reviewed auth middleware plan",
+          "status": "completed",
+          "deliverables": []
+        },
+        {
+          "task": "Reviewed task CRUD plan",
+          "status": "completed",
+          "deliverables": []
+        }
+      ],
+      "files_touched": {
+        "created": [],
+        "modified": ["CLAUDE.md"],
+        "deleted": []
+      },
+      "blockers": []
+    },
+    {
+      "role": "DevOps",
+      "purpose": "CI/CD pipeline, Docker configuration, environment setup, and deployment",
+      "scope": ["Dockerfile", "docker-compose.yml", ".github/workflows/", "scripts/"],
+      "boundaries": [
+        "Must NOT modify application business logic",
+        "Must NOT store secrets in Docker images or CI config"
+      ],
+      "goals": [
+        "Create Dockerfile and docker-compose for local dev",
+        "Set up GitHub Actions CI pipeline",
+        "Configure environment variable management"
+      ],
+      "interface_contracts": {
+        "outputs_to": [],
+        "inputs_from": []
+      },
+      "status": "completed",
+      "work_completed": [
+        {
+          "task": "Docker setup",
+          "status": "completed",
+          "deliverables": ["Dockerfile", "docker-compose.yml"]
+        },
+        {
+          "task": "CI pipeline",
+          "status": "completed",
+          "deliverables": [".github/workflows/ci.yml"]
+        }
+      ],
+      "files_touched": {
+        "created": ["Dockerfile", "docker-compose.yml", ".github/workflows/ci.yml", ".env.example"],
+        "modified": [],
+        "deleted": []
+      },
+      "blockers": []
     }
-  ],
-  "files_touched": {
-    "created": ["src/middleware/auth.ts", "src/routes/tasks.ts", "src/services/task.service.ts"],
-    "modified": ["src/routes/index.ts"],
-    "deleted": []
-  },
-  "summary": {
-    "key_achievements": [
-      "JWT middleware validates tokens and attaches user to request",
-      "Task CRUD supports create, read, update, delete with team scoping",
-      "4 unit tests and 2 integration tests written, all passing"
-    ],
-    "blockers_encountered": [
-      "Refresh token rotation requires Architect decision on token storage (Redis vs DB)"
-    ],
-    "escalations": [
-      "RFC submitted: Add Redis for token storage"
-    ]
-  },
-  "test_coverage": {
-    "tests_written": 6,
-    "tests_passing": true
-  },
-  "approval_status": {
-    "plans_submitted": 2,
-    "plans_approved": 2,
-    "plans_rejected": 0
-  }
+  ]
 }
 ```
-
-**Approval flow:**
-1. Agent completes session work and writes their completion log
-2. Critic reviews the log for accuracy, completeness, and file alignment
-3. Critic approves or requests revisions
-4. Approved log is committed alongside code changes
 
 **Relationship to Section 11:**
-- Section 11 (CLAUDE.md) captures *architectural decisions* made live during work
-- Section 13 (Session Logs) captures *work artifacts and completion status* at session end
-- The Critic bridges them: reviews session logs and escalates significant patterns to CLAUDE.md
+- Section 11 (CLAUDE.md) captures *why* decisions were made (strategic, human-readable)
+- Section 13 (TEAM_AGENTS.json) captures *who* did *what* and *who they are* (structural, machine-readable)
+- Together they give a new session full context without reverse-engineering git history
 
 ---
 

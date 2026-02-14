@@ -201,90 +201,77 @@ All agents must update `CLAUDE.md` when making architectural decisions, technolo
 
 ---
 
-## 13. Session Completion Log
+## 13. Agent Persistence (Save & Reuse)
 
-At the end of each work session, every agent must submit a completion log summarizing their work.
+At the end of each work session, save the entire team to `TEAM_AGENTS.json`. This file captures every agent's identity, goals, and completed work so the team can be reloaded later.
 
-**Format:** {{SESSION_LOG_FORMAT}} (JSON | Markdown | Both)
+**Save location:** `TEAM_AGENTS.json` (project root)
 
-**Log location:** `SESSION_LOGS/{{SESSION_DATE}}/{{AGENT_ROLE}}.{{LOG_EXT}}`
-
-{{IF SESSION_LOG_FORMAT == "JSON" OR SESSION_LOG_FORMAT == "Both"}}
-**JSON schema per agent:**
+**JSON schema:**
 ```json
 {
-  "agent_role": "{{AGENT_ROLE_NAME}}",
-  "status": "completed | blocked | escalated",
-  "scope": "One-liner of assigned task",
-  "work_completed": [
+  "team": {
+    "project_name": "{{PROJECT_NAME}}",
+    "source_of_truth": "{{SOURCE_OF_TRUTH}}",
+    "created": "YYYY-MM-DD",
+    "last_session": "YYYY-MM-DD",
+    "session_count": 1
+  },
+  "agents": [
+    {{FOR_EACH_AGENT}}
     {
-      "task": "Description of task",
-      "status": "completed | in_progress | blocked",
-      "deliverables": ["file/path/1", "file/path/2"]
+      "role": "{{AGENT_ROLE_NAME}}",
+      "purpose": "{{AGENT_PURPOSE}}",
+      "scope": ["{{OWNED_FILES_AND_MODULES}}"],
+      "boundaries": [
+        "Must NOT {{BOUNDARY_1}}",
+        "Must NOT {{BOUNDARY_2}}"
+      ],
+      "goals": [
+        "{{GOAL_1}}",
+        "{{GOAL_2}}"
+      ],
+      "interface_contracts": {
+        "outputs_to": ["{{AGENT_B}}"],
+        "inputs_from": ["{{AGENT_A}}"]
+      },
+      "status": "completed | blocked | escalated",
+      "work_completed": [
+        {
+          "task": "Description of task",
+          "status": "completed | in_progress | blocked",
+          "deliverables": ["file/path/1", "file/path/2"]
+        }
+      ],
+      "files_touched": {
+        "created": [],
+        "modified": [],
+        "deleted": []
+      },
+      "blockers": []
     }
-  ],
-  "files_touched": {
-    "created": [],
-    "modified": [],
-    "deleted": []
-  },
-  "summary": {
-    "key_achievements": [],
-    "blockers_encountered": [],
-    "escalations": []
-  },
-  "test_coverage": {
-    "tests_written": 0,
-    "tests_passing": true
-  },
-  "approval_status": {
-    "plans_submitted": 0,
-    "plans_approved": 0,
-    "plans_rejected": 0
-  }
+    {{END_FOR_EACH}}
+  ]
 }
 ```
-{{END_IF}}
 
-{{IF SESSION_LOG_FORMAT == "Markdown" OR SESSION_LOG_FORMAT == "Both"}}
-**Markdown format per agent:**
-```markdown
-### Agent: {{AGENT_ROLE_NAME}}
-- **Status:** completed | blocked | escalated
-- **Scope:** One-liner of assigned task
+**When to save:** At the end of every session, the lead agent updates `TEAM_AGENTS.json` with each agent's current status, completed work, and any blockers.
 
-#### Work Completed
-- [x] Task description → `deliverable/file/path`
+**When to load:** At the start of a session, if `TEAM_AGENTS.json` exists, agents read it to understand:
+- Their own role, scope, and boundaries (identity)
+- What they previously completed (history)
+- What other agents did (team context)
+- What's blocked and needs resolution (continuity)
 
-#### Files Touched
-- **Created:** list of file paths
-- **Modified:** list of file paths
-- **Deleted:** list of file paths
-
-#### Summary
-**Achievements:** list of key accomplishments
-**Blockers:** list of blockers (or "None")
-**Escalations:** list of escalations (or "None")
-
-#### Test Coverage
-- Tests written: N
-- Tests passing: Yes/No
-
-#### Approvals
-- Plans submitted: N | Approved: N | Rejected: N
-```
-{{END_IF}}
-
-**Approval flow:**
-1. Agent completes session work and writes their completion log
-2. Critic reviews the log for accuracy, completeness, and file alignment
-3. Critic approves or requests revisions
-4. Approved log is committed alongside code changes
+**Reuse scenarios:**
+- **Continue** — Same agents, same goals, pick up where they left off
+- **Update** — Same agents, new/modified goals, but with full history of prior work
+- **New feature** — Same team composition for a different feature, fresh goals, prior work archived
 
 **Relationship to Section 11:**
-- Section 11 (CLAUDE.md) captures *architectural decisions* made live during work
-- Section 13 (Session Logs) captures *work artifacts and completion status* at session end
-- The Critic bridges them: reviews session logs and escalates significant patterns to CLAUDE.md
+- Section 11 (CLAUDE.md) captures *why* decisions were made (strategic, human-readable)
+- Section 13 (TEAM_AGENTS.json) captures *who* did *what* and *who they are* (structural, machine-readable)
+- Together they give a new session full context without reverse-engineering git history
 
 ---
 
