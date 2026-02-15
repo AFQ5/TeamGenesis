@@ -1,0 +1,18 @@
+{
+  "name": "team-genesis",
+  "version": "1.0.0",
+  "description": "Generate enterprise-grade Agent Team prompts with governance architecture, anti-drift boundaries, approval gates, interface contracts, and agent persistence. Creates reusable multi-agent teams that save their roles, prompts, goals, and work to TEAM_AGENTS.json.",
+  "author": {
+    "name": "AFQ5"
+  },
+  "repository": "https://github.com/AFQ5/TeamGenesis",
+  "license": "MIT",
+  "keywords": [
+    "agent-team",
+    "multi-agent",
+    "governance",
+    "team-genesis",
+    "agent-persistence",
+    "prompt-engineering"
+  ]
+}

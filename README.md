@@ -1,8 +1,8 @@
 # TeamGenesis
 
-A Claude Code skill that generates enterprise-grade **Agent Team Prompts** with governance architecture, anti-drift boundaries, approval gates, and interface contracts.
+A Claude Code **plugin** that generates enterprise-grade **Agent Team Prompts** with governance architecture, anti-drift boundaries, approval gates, interface contracts, and agent persistence.
 
-When you spin up a multi-agent team, agents drift, guess, overbuild, and lack clear boundaries. TeamGenesis generates a structured prompt that prevents this — every agent gets explicit scope, a Definition of Done, Stop Conditions, and interface contracts with other agents.
+When you spin up a multi-agent team, agents drift, guess, overbuild, and lack clear boundaries. TeamGenesis generates a structured prompt that prevents this — every agent gets explicit scope, a Definition of Done, Stop Conditions, and interface contracts with other agents. When the session ends, agents are saved to `TEAM_AGENTS.json` so you can reload the same team later.
 
 ## What It Generates
 
@@ -19,19 +19,40 @@ A complete Agent Team Prompt following the **8-Point Governance Architecture**:
 
 Plus: Change Control (RFC process), Documentation Sync, Budget Constraints, and Two-Layer Prompting architecture.
 
-See [`examples/example-output.md`](examples/example-output.md) for a complete generated example.
+See [`skills/team-genesis/examples/example-output.md`](skills/team-genesis/examples/example-output.md) for a complete generated example.
 
 ## Installation
 
-Clone this repo into your Claude Code skills directory:
+### As a plugin (recommended)
 
 ```bash
-git clone https://github.com/AFQ5/TeamGenesis.git ~/.claude/skills/team-genesis
+# Add the marketplace (one-time)
+/plugin marketplace add AFQ5/TeamGenesis
+
+# Install the plugin
+/plugin install team-genesis
 ```
 
-Or for project-level skills:
+Or from the CLI:
 
 ```bash
+claude plugin install team-genesis@AFQ5/TeamGenesis
+```
+
+### Local development / testing
+
+```bash
+git clone https://github.com/AFQ5/TeamGenesis.git
+claude --plugin-dir ./TeamGenesis
+```
+
+### Legacy: as a standalone skill
+
+```bash
+# User-level (all projects)
+git clone https://github.com/AFQ5/TeamGenesis.git ~/.claude/skills/team-genesis
+
+# Project-level
 git clone https://github.com/AFQ5/TeamGenesis.git .claude/skills/team-genesis
 ```
 
@@ -50,7 +71,8 @@ Then provide:
 - **Security Invariants** (optional)
 - **Project Type** (optional — auto-detected from stack)
 - **Custom Roles** (optional — override default agent roles)
-The skill writes the generated prompt to `./AGENT_TEAM_PROMPT.md` and saves agents to `./TEAM_AGENTS.json`.
+
+The plugin writes the generated prompt to `./AGENT_TEAM_PROMPT.md` and saves agents to `./TEAM_AGENTS.json`.
 
 ## Agent Reuse
 
@@ -74,17 +96,23 @@ Each agent's JSON snapshot includes their role, purpose, scope, boundaries, goal
 
 You can also define **custom roles** — TeamGenesis applies the same governance structure (DoD, Stop Conditions, interface contracts, boundaries) to any role you specify.
 
-## Project Structure
+## Plugin Structure
 
 ```
-team-genesis/
-├── SKILL.md                          # Core skill (frontmatter + instructions)
-├── references/
-│   ├── governance-architecture.md    # 8-Point Architecture + Quality Multipliers
-│   ├── prompt-template.md            # Output template with placeholders
-│   └── project-type-profiles.md      # Role configs per project type
-└── examples/
-    └── example-output.md             # Complete generated example (TaskFlow API)
+TeamGenesis/
+├── .claude-plugin/
+│   └── plugin.json                       # Plugin manifest
+├── skills/
+│   └── team-genesis/
+│       ├── SKILL.md                      # Core skill (frontmatter + instructions)
+│       ├── references/
+│       │   ├── governance-architecture.md  # 8-Point Architecture + Quality Multipliers
+│       │   ├── prompt-template.md          # Output template with placeholders
+│       │   └── project-type-profiles.md    # Role configs per project type
+│       └── examples/
+│           └── example-output.md           # Complete generated example (TaskFlow API)
+├── README.md
+└── LICENSE
 ```
 
 ## License
