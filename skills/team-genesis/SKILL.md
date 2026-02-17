@@ -24,14 +24,16 @@ Ask the user for all inputs in a **single message**. Present them as a clear lis
 
 **Optional inputs (provide defaults if skipped):**
 5. **Security Invariants** — Non-negotiable security rules. Default: no secrets in code, validate all user input, parameterized DB queries, escape HTML output.
-6. **Project Type** — One of: `web-app`, `api-service`, `cli-tool`, `library`, `data-pipeline`. Default: inferred from tech stack.
-7. **Custom Roles** — User-defined agent roles to use instead of (or in addition to) the defaults. Default: auto-selected based on project type.
-8. **Output file path** — Where to write the generated prompt. Default: `./AGENT_TEAM_PROMPT.md`.
+6. **Custom Roles** — User-defined agent roles to use instead of (or in addition to) the dynamically selected specialists. Default: auto-selected based on project description and tech stack.
+7. **Output file path** — Where to write the generated prompt. Default: `./AGENT_TEAM_PROMPT.md`.
 
-**Before asking for inputs**, check if `TEAM_AGENTS.json` exists in the project root. If it does, ask the user:
-- **Continue** — Reload the same agents with their history, pick up where they left off
-- **Update** — Same agents, but modify goals for a new feature (history preserved)
-- **New team** — Generate from scratch (existing file is archived to `TEAM_AGENTS.{date}.json`)
+**Before asking for inputs**, check if `TEAM_AGENTS.json` exists in the project root. If it does:
+
+1. Check the `governance_version` field in the JSON. If it differs from the current governance version (`1.0.0`), warn the user: "This team was generated with governance v{old_version}. The current version is v1.0.0. Recommend regenerating to pick up governance improvements."
+2. Ask the user:
+   - **Continue** — Reload the same agents with their history, pick up where they left off
+   - **Update** — Same agents, but modify goals for a new feature (history preserved)
+   - **New team** — Generate from scratch (existing file is archived to `TEAM_AGENTS.{date}.json`)
 
 If continuing or updating, load the agents from the file and skip role selection (Step 2). Only ask for new/modified goals.
 
@@ -41,24 +43,18 @@ If the user provides all inputs upfront (e.g., in the initial message), skip the
 
 ## Step 2: Select Agent Roles
 
-Read the role profiles from `references/project-type-profiles.md`.
+Read `references/project-type-profiles.md` for the core roles and reference examples.
 
 **Always include these core roles:**
 - **Architect** — System design, schemas, interface contracts
 - **Implementer** — Code writing per approved plans
 - **Critic** — Plan review, quality gates (reviews plans, not code)
 
-**Add project-type-specific roles:**
+**Determine 1-3 specialist roles** based on the user's project description, tech stack, and goals. The reference examples in `project-type-profiles.md` demonstrate the expected depth and rigor for common domains (web apps, API services, CLI tools, libraries, data pipelines). Use them as calibration points, then apply the same governance standard to any domain — the system is not limited to those examples.
 
-| Project Type   | Additional Roles                    |
-|----------------|-------------------------------------|
-| web-app        | Frontend Specialist, DevOps         |
-| api-service    | API Designer, DevOps                |
-| cli-tool       | CLI/DX Specialist                   |
-| library        | API Designer, DX/Documentation      |
-| data-pipeline  | Data Engineer, DevOps               |
+**Every specialist role must have the full governance structure:** purpose, scope, responsibilities, boundaries ("Must NOT"), Definition of Done, Stop Conditions, and test requirements.
 
-**If user provided custom roles:** Use them instead of (or in addition to) the defaults. Apply the same governance structure to each custom role: purpose, scope, responsibilities, boundaries ("Must NOT"), Definition of Done, Stop Conditions, and test requirements.
+**If user provided custom roles:** Use them instead of (or in addition to) the dynamically selected specialists. Apply the same governance structure. Ask clarifying questions if a role name is ambiguous.
 
 ---
 
@@ -68,9 +64,13 @@ Read the following reference files to build the output:
 
 1. `references/governance-architecture.md` — Understand the 8-Point Architecture and Quality Multipliers
 2. `references/prompt-template.md` — Get the output structure and fill in placeholders
-3. `examples/example-output.md` — Calibrate quality, specificity, and format
+3. `examples/` — Read all examples to understand the range of governance application across different domains, then generate output appropriate to the user's specific project:
+   - `example-output.md` — API service (TaskFlow): endpoints, schemas, auth flows
+   - `example-cli-tool.md` — CLI tool (deploy-cli): commands, flags, output formatters, non-interactive mode
+   - `example-web-app.md` — Web application (PulseBoard): components, real-time data, accessibility, frontend-to-API contracts
+   - `example-data-pipeline.md` — Data pipeline (DataSync): ETL stages, data validation, idempotency, pipeline orchestration
 
-**Fill in the template** with the user's inputs and selected roles. The generated prompt must contain these 13 sections:
+**Fill in the template** with the user's inputs and selected roles. The generated prompt must contain these 14 sections:
 
 1. **Project Context** — Name, goal, stack, source of truth
 2. **Source of Truth Rule** — Authority hierarchy and conflict resolution
@@ -79,6 +79,7 @@ Read the following reference files to build the output:
 5. **Interface Contracts** — Exact I/O schemas between agent pairs with concrete examples
 6. **Approval Protocol** — Plan-first gate (steps, files, schemas, edge cases, tests, rollback)
 7. **Stop Conditions (Global)** — When ALL agents must halt
+7.1. **Escalation Protocol** — What happens after an agent halts: format, resolution path, conflict arbitration, boundary override rules
 8. **Change Control (RFC Process)** — How to propose unplanned changes
 9. **Operational Constraints** — Runtime, module system, dependency policy, sandboxing
 10. **Security Invariants** — Unchangeable rules
@@ -87,6 +88,24 @@ Read the following reference files to build the output:
 13. **Agent Persistence** — Save all agents (roles, prompts, goals, work completed) to `TEAM_AGENTS.json` for reuse
 
 Plus appendices: High-Leverage One-Liners, Prompting Architecture (Two-Layer).
+
+---
+
+## Step 3.5: Self-Validate Before Writing
+
+Before writing the output, verify the generated prompt passes all quality checks. If any check fails, fix it before proceeding.
+
+**Validation checklist:**
+- [ ] Every agent has a Definition of Done with at least 3 measurable, yes/no checkable items
+- [ ] Every agent has at least 2 Stop Conditions (specific situations where they halt and escalate)
+- [ ] Every interface contract includes a concrete example (real code/data, not just format descriptions)
+- [ ] Security invariants appear in both Section 10 (dedicated section) AND in relevant agents' boundaries or stop conditions
+- [ ] The Source of Truth file (`{{SOURCE_OF_TRUTH}}`) is referenced in every agent's stop conditions
+- [ ] No `{{...}}` placeholder syntax remains in the output — every placeholder has been replaced with a real value
+- [ ] All file paths in deliverables are specific (e.g., `src/models/user.ts`, not "create the models")
+- [ ] The "No code before plan approval" rule appears in both the Approval Protocol section and each agent's Stop Conditions
+
+If a check fails, fix the generated content and re-verify before proceeding to Step 4.
 
 ---
 
@@ -129,8 +148,8 @@ Every generated prompt **must** satisfy these criteria:
 - For missing required inputs: ask specifically for what's missing, don't proceed without it
 - For missing optional inputs: use the defaults listed in Step 1
 
-**If the project type is ambiguous:**
-- Ask the user to clarify. Example: "Your stack includes both React and Express — is this a full-stack web-app, or should I focus on just the api-service?"
+**If the specialist roles are unclear from the project description:**
+- Ask the user to clarify. Example: "Your stack includes both React and Express — should I create specialists for both frontend and backend, or focus on one side?"
 
 **If the user requests roles that conflict:**
 - Flag the conflict. Example: "You've asked for both an Implementer and a Full-Stack Developer. These roles overlap — should the Full-Stack Developer replace the Implementer, or should they have separate scopes?"
@@ -146,9 +165,9 @@ Every generated prompt **must** satisfy these criteria:
 **User says:** "Create an agent team for my new Node.js CLI tool called `deploy-cli`"
 
 **What you do:**
-1. Infer project type: `cli-tool`
-2. Ask for: Primary Goal, Source of Truth file, and Tech Stack details (Node version, TypeScript?)
-3. Use defaults for security invariants and output path
+1. Ask for: Primary Goal, Source of Truth file, and Tech Stack details (Node version, TypeScript?)
+2. Use defaults for security invariants and output path
+3. Determine specialist roles from project context: CLI/DX Specialist is the natural fit
 4. Generate prompt with: Architect, Implementer, Critic, CLI/DX Specialist
 
 ### Example 2: Full input
@@ -156,7 +175,7 @@ Every generated prompt **must** satisfy these criteria:
 
 **What you do:**
 1. All required inputs provided — skip questions
-2. Project type: `api-service`
+2. Determine specialist roles from project context: API Designer + DevOps are the natural fit for a REST API service
 3. Generate prompt immediately with: Architect, Implementer, Critic, API Designer, DevOps
 4. Write to `./AGENT_TEAM_PROMPT.md`
 
@@ -164,10 +183,18 @@ Every generated prompt **must** satisfy these criteria:
 **User says:** "I need a team for my ML pipeline. Roles: Data Scientist, ML Engineer, Platform Engineer, Reviewer."
 
 **What you do:**
-1. Project type: `data-pipeline`
-2. Use custom roles instead of defaults, but keep core Critic role (maps to "Reviewer")
-3. Apply full governance structure to each custom role
-4. Ask for any missing required inputs
+1. Use custom roles, but keep core Critic role (maps to "Reviewer")
+2. Apply full governance structure to each custom role
+3. Ask for any missing required inputs
+
+### Example 5: Novel project domain
+**User says:** "Create an agent team for a React Native mobile app with Firebase backend"
+
+**What you do:**
+1. Ask for: Project Name, Primary Goal, Source of Truth file
+2. Determine specialist roles from project context: Mobile Specialist (React Native screens, navigation, platform-specific concerns) + Backend Specialist (Firebase rules, cloud functions, auth config)
+3. Apply the same governance structure as the reference examples — DoD, Stop Conditions, boundaries, interface contracts
+4. Generate prompt with: Architect, Implementer, Critic, Mobile Specialist, Backend Specialist
 
 ### Example 4: Reuse existing team
 **User says:** "I want to add a notifications feature to TaskFlow"

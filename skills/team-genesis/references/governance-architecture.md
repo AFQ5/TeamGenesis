@@ -1,12 +1,14 @@
 # Governance Architecture Reference
 
-This document defines the **8-Point Governance Architecture** and **6 Quality Multipliers** that form the foundation of every TeamGenesis-generated Agent Team Prompt.
+> **Governance Version:** 1.0.0
+
+This document defines the **8-Point Governance Architecture** and **7 Quality Multipliers** that form the foundation of every TeamGenesis-generated Agent Team Prompt.
 
 Claude: Read this file to understand the principles behind each section you generate. Do not copy this text verbatim into the output — use it to inform the depth and rigor of what you write.
 
 ---
 
-## The 7-Point Governance Architecture
+## The 8-Point Governance Architecture
 
 ### Point 1: Project Context
 
@@ -192,7 +194,7 @@ Claude: Read this file to understand the principles behind each section you gene
 
 ## Quality Multipliers
 
-These six discipline layers complement the 8-Point Architecture. They are embedded throughout the generated prompt, not isolated in their own sections.
+These seven discipline layers complement the 8-Point Architecture. They are embedded throughout the generated prompt, not isolated in their own sections.
 
 ### QM-1: Interface Contracts
 
@@ -260,3 +262,37 @@ Already enforced by Point 5 (Approval Protocol). When generating the prompt, emp
 - If a task can be done in 20 lines without a library, do it in 20 lines
 
 **Why it matters:** Agents over-engineer by default. They add abstractions, utilities, and "nice to have" features that bloat the codebase. Budget constraints force focus.
+
+### QM-7: Escalation Protocol
+
+**What it is:** The defined process for what happens after an agent halts ("STOP and escalate"). Without this, agents deadlock or silently proceed with one interpretation.
+
+**Escalation format:**
+```
+## Escalation: [Short title]
+- **Decision needed:** [What must be decided]
+- **Options:** [2-3 concrete options]
+- **Recommendation:** [What this agent recommends and why]
+- **Blocked work:** [What cannot proceed until this is resolved]
+```
+
+**Escalation rules:**
+
+1. **All escalations go to the user (human-in-the-loop).** The escalating agent must format the escalation using the template above so the user can make an informed decision quickly.
+
+2. **If the user is unavailable or does not respond** within the current session, the agent must:
+   - Log the escalation in `CLAUDE.md` as a "Pending Decision" using the escalation format
+   - Mark its own status as `blocked` in `TEAM_AGENTS.json`
+   - Stop work on the blocked task, but continue unrelated tasks if any
+
+3. **Agent-to-agent disagreements:** When two agents disagree on approach within the allowed rules:
+   - Each agent writes their position using the RFC format (from QM-2)
+   - **Implementation-level disagreements** (how to build something): the Critic acts as arbiter
+   - **Architecture-level disagreements** (what to build, system design): the Architect acts as arbiter
+   - If the arbiter cannot resolve, or if the disagreement involves the arbiter's own decision: escalate to the user
+
+4. **Boundary overrides are forbidden.** No agent may override another agent's "Must NOT" boundary, even through escalation. Boundary changes require explicit user approval.
+
+5. **Circular escalation prevention.** If an escalation involves the role that would normally arbitrate (e.g., disagreement about the Critic's own review), skip that arbiter and escalate directly to the user.
+
+**Why it matters:** Without a defined post-escalation process, "STOP and escalate" is an instruction with no destination. Agents either deadlock (both waiting for resolution), silently pick one interpretation (defeating governance), or produce inconsistent results. This protocol gives every escalation a clear path to resolution.

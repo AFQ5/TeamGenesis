@@ -1,12 +1,14 @@
-# Project Type Profiles
+# Role Profiles Reference
 
-This file defines which agent roles to assign based on the project type. Claude reads this file to select the right team composition.
+This file defines the **core roles** (always included) and provides **reference examples** showing how specialist roles are structured for different project domains. Claude reads these examples to understand the expected depth and governance rigor, then dynamically generates specialist roles appropriate to the user's specific project.
+
+**These examples are not an exhaustive list.** Any project domain can be supported — Claude determines the right specialist roles based on the user's project description, tech stack, and goals, applying the same governance structure demonstrated below.
 
 ---
 
 ## Core Roles (Always Included)
 
-These three roles are present in every generated prompt regardless of project type.
+These three roles are present in every generated prompt regardless of project domain.
 
 ### Architect
 - **Purpose:** System design, schemas, interface contracts, and architectural consistency.
@@ -28,13 +30,31 @@ These three roles are present in every generated prompt regardless of project ty
 
 ---
 
-## Project-Type-Specific Roles
+## Generating Specialist Roles
 
-Select additional roles based on the project type. If the user specifies custom roles, use those instead (or in addition) — but apply the same governance structure (DoD, stop conditions, boundaries) to every custom role.
+For every project, determine 1-3 additional specialist roles beyond the core three. Use the user's project description, tech stack, and goals to decide which specialists are needed.
 
-### web-app
+**Every specialist role must have the full governance structure:**
+- Purpose (one-line)
+- Scope (what files/modules they own)
+- Responsibilities (3-5 items)
+- "Must NOT" boundaries (2-3 items)
+- Definition of Done checklist (3-5 measurable items)
+- Stop Conditions (2-3 specific situations where they halt and escalate)
 
-**Additional roles:** Frontend Specialist, DevOps
+**If the user provides custom role names:** Use them, applying the same governance structure. Ask clarifying questions if a role name is ambiguous (e.g., "Helper" — helper for what?). Always include the three core roles unless the user explicitly says to replace them.
+
+The reference examples below show how this governance structure is applied across different project domains. Study them for depth and rigor, then apply the same standard to any domain.
+
+---
+
+## Reference Examples
+
+These examples demonstrate how specialist roles are structured for common project domains. They serve as calibration points — showing the expected level of specificity in purpose, scope, boundaries, and DoD.
+
+### Example: Web Application
+
+**Typical specialist roles:** Frontend Specialist, DevOps
 
 **Frontend Specialist:**
 - **Purpose:** Build UI components, manage client-side state, handle routing and user interactions.
@@ -50,9 +70,9 @@ Select additional roles based on the project type. If the user specifies custom 
 
 ---
 
-### api-service
+### Example: API Service
 
-**Additional roles:** API Designer, DevOps
+**Typical specialist roles:** API Designer, DevOps
 
 **API Designer:**
 - **Purpose:** Define API endpoints, request/response schemas, error formats, versioning strategy.
@@ -60,13 +80,13 @@ Select additional roles based on the project type. If the user specifies custom 
 - **Must NOT:** Write business logic implementation. Change database schemas without Architect approval.
 - **DoD template:** API spec complete with all endpoints documented. Request/response examples for each endpoint. Error codes and messages defined. Versioning strategy documented.
 
-**DevOps:** (Same as web-app profile above.)
+**DevOps:** (Same structure as Web Application example above.)
 
 ---
 
-### cli-tool
+### Example: CLI Tool
 
-**Additional role:** CLI/DX Specialist
+**Typical specialist role:** CLI/DX Specialist
 
 **CLI/DX Specialist:**
 - **Purpose:** Build CLI commands, argument parsing, help text, output formatting, and developer experience.
@@ -76,9 +96,9 @@ Select additional roles based on the project type. If the user specifies custom 
 
 ---
 
-### library
+### Example: Library / SDK
 
-**Additional roles:** API Designer, DX/Documentation Specialist
+**Typical specialist roles:** API Designer, DX/Documentation Specialist
 
 **API Designer:**
 - **Purpose:** Define the public API surface, type signatures, method contracts, and extension points.
@@ -94,9 +114,9 @@ Select additional roles based on the project type. If the user specifies custom 
 
 ---
 
-### data-pipeline
+### Example: Data Pipeline
 
-**Additional roles:** Data Engineer, DevOps
+**Typical specialist roles:** Data Engineer, DevOps
 
 **Data Engineer:**
 - **Purpose:** Design data flows, transformations, validation rules, and storage schemas.
@@ -104,48 +124,33 @@ Select additional roles based on the project type. If the user specifies custom 
 - **Must NOT:** Modify API endpoints. Change authentication logic. Skip data validation steps.
 - **DoD template:** Data schemas defined with examples. Transformation logic tested with edge cases (nulls, empty sets, malformed input). Pipeline idempotent (re-runnable without side effects). Data quality checks in place.
 
-**DevOps:** (Same as web-app profile above.)
+**DevOps:** (Same structure as Web Application example above.)
 
 ---
 
-## Handling User-Defined Custom Roles
+## Interface Contract Patterns
 
-When the user provides custom role names:
+These patterns show how interface contracts are structured for different project domains. When generating contracts for any project, follow the same format: explicit input/output specs with concrete examples.
 
-1. **Use the custom roles** instead of (or in addition to) the profile defaults above.
-2. **Apply the governance structure** to each custom role. Every custom role must have:
-   - Purpose (one-line)
-   - Scope (what files/modules they own)
-   - Responsibilities (3-5 items)
-   - "Must NOT" boundaries (2-3 items)
-   - Definition of Done checklist (3-5 measurable items)
-   - Stop Conditions (2-3 specific situations where they halt and escalate)
-3. **Ask clarifying questions** if a custom role name is ambiguous (e.g., "Helper" — helper for what?).
-4. **Always include the three core roles** (Architect, Implementer, Critic) even when custom roles are provided, unless the user explicitly says to replace them.
-
----
-
-## Interface Contracts by Project Type
-
-Define these default interface contracts based on project type. Add more as needed.
-
-### web-app / api-service
+### Pattern: Web Application / API Service
 - Architect -> Implementer: Data schemas (JSON/TypeScript types with examples)
 - Implementer -> Critic: Plan document (markdown with steps, files, schemas, edge cases)
 - Critic -> Implementer: Approval (pass/fail + specific feedback per section)
 - API Designer -> Frontend Specialist: API spec (OpenAPI or typed endpoint definitions)
 
-### cli-tool
+### Pattern: CLI Tool
 - Architect -> Implementer: Command spec (name, flags, args, output format)
 - Implementer -> CLI/DX Specialist: Core functions (typed interfaces for CLI to call)
 - CLI/DX Specialist -> Critic: Integration test results + help text review
 
-### library
+### Pattern: Library / SDK
 - API Designer -> Implementer: Public API surface (type signatures + method contracts)
 - Implementer -> DX/Documentation: Implementation notes (what changed, what to document)
 - DX/Documentation -> Critic: Documentation review (completeness, accuracy, examples)
 
-### data-pipeline
+### Pattern: Data Pipeline
 - Architect -> Data Engineer: Pipeline spec (sources, transformations, destinations, schedules)
 - Data Engineer -> Implementer: Data schemas + transformation rules
 - Implementer -> Critic: Plan with data flow diagrams + edge case analysis
+
+**For other domains:** Define contracts following the same format — explicit input artifact, explicit output artifact, and a concrete example. Every agent pair that exchanges work must have a contract.
