@@ -233,18 +233,13 @@ Create an Agent Team with the following teammates:
 **Scope:** `src/components/`, `src/hooks/`, `src/pages/`, `src/context/`, `src/styles/`, `src/lib/`
 
 **Deliverables:**
-- Layout shell (`src/components/layout/AppShell.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/layout/Header.tsx`)
-- Auth pages (`src/pages/LoginPage.tsx`)
-- Dashboard page (`src/pages/DashboardPage.tsx`)
-- Metric detail page (`src/pages/MetricDetailPage.tsx`)
-- Settings page (`src/pages/SettingsPage.tsx`)
-- Chart components (`src/components/charts/LineChart.tsx`, `src/components/charts/BarChart.tsx`, `src/components/charts/GaugeChart.tsx`)
-- Metric card component (`src/components/dashboard/MetricCard.tsx`)
-- Alert badge component (`src/components/alerts/AlertBadge.tsx`)
+- Layout shell (`src/components/layout/AppShell.tsx`, `Sidebar.tsx`, `Header.tsx`)
+- Pages (`src/pages/LoginPage.tsx`, `DashboardPage.tsx`, `MetricDetailPage.tsx`, `SettingsPage.tsx`)
+- Chart components (`src/components/charts/LineChart.tsx`, `BarChart.tsx`, `GaugeChart.tsx`)
+- Dashboard widgets (`src/components/dashboard/MetricCard.tsx`, `src/components/alerts/AlertBadge.tsx`)
 - Real-time hooks (`src/hooks/useSocket.ts`, `src/hooks/useMetricStream.ts`)
-- Auth context (`src/context/AuthContext.tsx`)
+- Auth layer (`src/context/AuthContext.tsx`, `src/components/auth/ProtectedRoute.tsx`)
 - API client (`src/lib/api.ts`)
-- Protected route wrapper (`src/components/auth/ProtectedRoute.tsx`)
 
 **Definition of Done:**
 - [ ] All components match the Architect's component hierarchy
@@ -326,20 +321,6 @@ interface Metric {
   updatedAt: string; // ISO 8601
 }
 
-interface MetricSnapshot {
-  metricId: string;
-  value: number;
-  timestamp: string; // ISO 8601
-}
-
-interface DashboardLayout {
-  id: string;
-  name: string;
-  widgets: DashboardWidget[];
-  ownerId: string;
-  isDefault: boolean;
-}
-
 interface DashboardWidget {
   id: string;
   metricId: string;
@@ -353,26 +334,12 @@ interface DashboardWidget {
 - **Output:** Routes and Socket.io handlers implement contracts exactly; any changes go through RFC
 - **Example:**
 ```typescript
-// docs/architecture/ws-events.md
-// Server -> Client events
-interface WsEvents {
-  "metric:update": {
-    metricId: string;
-    value: number;
-    timestamp: string;
-  };
-  "metric:alert": {
-    metricId: string;
-    level: "warning" | "critical";
-    value: number;
-    threshold: number;
-    message: string;
-  };
-  "connection:status": {
-    status: "connected" | "reconnecting" | "disconnected";
-  };
+// docs/architecture/ws-events.md — Server -> Client events
+interface WsServerEvents {
+  "metric:update": { metricId: string; value: number; timestamp: string };
+  "metric:alert": { metricId: string; level: "warning" | "critical"; value: number; threshold: number; message: string };
+  "connection:status": { status: "connected" | "reconnecting" | "disconnected" };
 }
-
 // Client -> Server events
 interface WsClientEvents {
   "dashboard:subscribe": { dashboardId: string };
@@ -386,27 +353,20 @@ interface WsClientEvents {
 - **Output:** REST endpoints return data matching the TypeScript response types exactly
 - **Example:**
 ```typescript
-// src/lib/api.ts
-// Frontend expects these response shapes from the backend
-
+// src/lib/api.ts — Frontend expects these response shapes
 // GET /api/metrics?tags=cpu,memory&range=1h
 type GetMetricsResponse = {
   data: Metric[];
   pagination: { total: number; page: number; pageSize: number };
 };
-
 // GET /api/metrics/:id/history?from=...&to=...&interval=5m
 type GetMetricHistoryResponse = {
   metricId: string;
-  snapshots: MetricSnapshot[];
+  snapshots: Array<{ value: number; timestamp: string }>;
   aggregation: { min: number; max: number; avg: number; p95: number };
 };
-
 // POST /api/dashboards
-type CreateDashboardRequest = {
-  name: string;
-  widgets: Omit<DashboardWidget, "id">[];
-};
+type CreateDashboardRequest = { name: string; widgets: Omit<DashboardWidget, "id">[] };
 type CreateDashboardResponse = DashboardLayout;
 ```
 
@@ -723,38 +683,15 @@ At the end of each work session, save the entire team to `TEAM_AGENTS.json`. Thi
       "role": "Critic",
       "purpose": "Review plans for completeness, security compliance, accessibility, testability, and edge case coverage",
       "scope": ["Plan review", "approval decisions", "quality gates"],
-      "boundaries": [
-        "Must NOT write implementation code",
-        "Must NOT approve plans that skip test strategy",
-        "Must NOT approve frontend plans missing accessibility checklist"
-      ],
-      "goals": [
-        "Review every implementation plan before coding starts",
-        "Verify plans preserve all security invariants",
-        "Validate accessibility compliance against WCAG 2.1 AA"
-      ],
-      "interface_contracts": {
-        "outputs_to": [],
-        "inputs_from": ["Implementer", "Frontend Specialist", "Architect"]
-      },
+      "boundaries": ["Must NOT write implementation code", "Must NOT approve plans that skip test strategy", "Must NOT approve frontend plans missing accessibility checklist"],
+      "goals": ["Review every plan before coding starts", "Verify security invariants", "Validate WCAG 2.1 AA compliance"],
+      "interface_contracts": { "outputs_to": [], "inputs_from": ["Implementer", "Frontend Specialist", "Architect"] },
       "status": "completed",
       "work_completed": [
-        {
-          "task": "Reviewed auth middleware plan",
-          "status": "completed",
-          "deliverables": []
-        },
-        {
-          "task": "Reviewed dashboard layout component plan",
-          "status": "completed",
-          "deliverables": []
-        }
+        { "task": "Reviewed auth middleware plan", "status": "completed", "deliverables": [] },
+        { "task": "Reviewed dashboard layout component plan", "status": "completed", "deliverables": [] }
       ],
-      "files_touched": {
-        "created": [],
-        "modified": ["CLAUDE.md"],
-        "deleted": []
-      },
+      "files_touched": { "created": [], "modified": ["CLAUDE.md"], "deleted": [] },
       "blockers": []
     },
     {
