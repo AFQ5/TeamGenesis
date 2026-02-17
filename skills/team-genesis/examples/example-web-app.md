@@ -596,87 +596,32 @@ At the end of each work session, save the entire team to `TEAM_AGENTS.json`. Thi
       "role": "Architect",
       "purpose": "Define component hierarchy, data flow architecture, API surface, WebSocket event contracts, and technology decisions for PulseBoard",
       "scope": ["src/types/", "docs/architecture/", "src/shared/"],
-      "boundaries": [
-        "Must NOT write implementation code",
-        "Must NOT approve plans without verifying security invariants",
-        "Must NOT introduce state management libraries not specified in PRD.md"
-      ],
-      "goals": [
-        "Design component tree and state management strategy",
-        "Define REST endpoint structure and WebSocket event schemas",
-        "Establish authentication flow and route protection"
-      ],
-      "interface_contracts": {
-        "outputs_to": ["Frontend Specialist", "Implementer"],
-        "inputs_from": []
-      },
+      "boundaries": ["Must NOT write implementation code", "Must NOT approve plans without verifying security invariants", "Must NOT introduce state management libraries not specified in PRD.md"],
+      "goals": ["Design component tree and state management strategy", "Define REST endpoint structure and WebSocket event schemas", "Establish authentication flow and route protection"],
+      "interface_contracts": { "outputs_to": ["Frontend Specialist", "Implementer"], "inputs_from": [] },
       "status": "completed",
       "work_completed": [
-        {
-          "task": "Component hierarchy and state management strategy",
-          "status": "completed",
-          "deliverables": ["docs/architecture/component-tree.md", "docs/architecture/state-management.md"]
-        },
-        {
-          "task": "TypeScript type definitions for all domain entities",
-          "status": "completed",
-          "deliverables": ["src/types/metric.ts", "src/types/dashboard.ts", "src/types/user.ts", "src/types/websocket.ts"]
-        },
-        {
-          "task": "WebSocket event contract and API contracts",
-          "status": "completed",
-          "deliverables": ["docs/architecture/ws-events.md", "docs/architecture/api-contracts.md"]
-        }
+        { "task": "Component hierarchy and state management strategy", "status": "completed", "deliverables": ["docs/architecture/component-tree.md", "docs/architecture/state-management.md"] },
+        { "task": "TypeScript type definitions for all domain entities", "status": "completed", "deliverables": ["src/types/metric.ts", "src/types/dashboard.ts", "src/types/user.ts", "src/types/websocket.ts"] },
+        { "task": "WebSocket event contract and API contracts", "status": "completed", "deliverables": ["docs/architecture/ws-events.md", "docs/architecture/api-contracts.md"] }
       ],
-      "files_touched": {
-        "created": ["docs/architecture/component-tree.md", "docs/architecture/ws-events.md", "docs/architecture/api-contracts.md", "src/types/metric.ts", "src/types/dashboard.ts", "src/types/user.ts", "src/types/websocket.ts"],
-        "modified": [],
-        "deleted": []
-      },
+      "files_touched": { "created": ["docs/architecture/component-tree.md", "docs/architecture/ws-events.md", "docs/architecture/api-contracts.md", "src/types/metric.ts", "src/types/dashboard.ts", "src/types/user.ts", "src/types/websocket.ts"], "modified": [], "deleted": [] },
       "blockers": []
     },
     {
       "role": "Implementer",
       "purpose": "Write production code for Express API routes, middleware, database queries, and backend business logic",
       "scope": ["server/routes/", "server/middleware/", "server/services/", "server/socket/"],
-      "boundaries": [
-        "Must NOT modify database schema without Architect approval",
-        "Must NOT add npm dependencies without RFC",
-        "Must NOT bypass authentication middleware",
-        "Must NOT write frontend components"
-      ],
-      "goals": [
-        "Implement Express routes per approved plan",
-        "Implement JWT authentication middleware",
-        "Build Socket.io server-side event handlers"
-      ],
-      "interface_contracts": {
-        "outputs_to": ["Critic"],
-        "inputs_from": ["Architect"]
-      },
+      "boundaries": ["Must NOT modify database schema without Architect approval", "Must NOT add npm dependencies without RFC", "Must NOT bypass authentication middleware", "Must NOT write frontend components"],
+      "goals": ["Implement Express routes per approved plan", "Implement JWT authentication middleware", "Build Socket.io server-side event handlers"],
+      "interface_contracts": { "outputs_to": ["Critic"], "inputs_from": ["Architect"] },
       "status": "blocked",
       "work_completed": [
-        {
-          "task": "JWT authentication middleware",
-          "status": "completed",
-          "deliverables": ["server/middleware/auth.ts"]
-        },
-        {
-          "task": "Metrics query API routes",
-          "status": "completed",
-          "deliverables": ["server/routes/metrics.ts", "server/services/metric.service.ts"]
-        },
-        {
-          "task": "Socket.io metric streaming handlers",
-          "status": "blocked",
-          "deliverables": []
-        }
+        { "task": "JWT authentication middleware", "status": "completed", "deliverables": ["server/middleware/auth.ts"] },
+        { "task": "Metrics query API routes", "status": "completed", "deliverables": ["server/routes/metrics.ts", "server/services/metric.service.ts"] },
+        { "task": "Socket.io metric streaming handlers", "status": "blocked", "deliverables": [] }
       ],
-      "files_touched": {
-        "created": ["server/middleware/auth.ts", "server/routes/metrics.ts", "server/services/metric.service.ts"],
-        "modified": ["server/index.ts"],
-        "deleted": []
-      },
+      "files_touched": { "created": ["server/middleware/auth.ts", "server/routes/metrics.ts", "server/services/metric.service.ts"], "modified": ["server/index.ts"], "deleted": [] },
       "blockers": ["Socket.io room authorization strategy requires Architect decision on per-dashboard vs per-metric subscription model"]
     },
     {
@@ -748,42 +693,16 @@ At the end of each work session, save the entire team to `TEAM_AGENTS.json`. Thi
       "role": "DevOps",
       "purpose": "CI/CD pipeline, Docker configuration, environment setup, build optimization, and deployment",
       "scope": ["Dockerfile", "docker-compose.yml", ".github/workflows/", "scripts/", "vite.config.ts"],
-      "boundaries": [
-        "Must NOT modify application business logic or UI components",
-        "Must NOT store secrets in Docker images, CI config, or client bundles"
-      ],
-      "goals": [
-        "Create Dockerfile and docker-compose for local dev",
-        "Set up GitHub Actions CI pipeline with Lighthouse audit",
-        "Configure Vite build optimization and env variable management"
-      ],
-      "interface_contracts": {
-        "outputs_to": [],
-        "inputs_from": []
-      },
+      "boundaries": ["Must NOT modify application business logic or UI components", "Must NOT store secrets in Docker images, CI config, or client bundles"],
+      "goals": ["Create Dockerfile and docker-compose for local dev", "Set up CI pipeline with Lighthouse audit", "Configure Vite build optimization and env management"],
+      "interface_contracts": { "outputs_to": [], "inputs_from": [] },
       "status": "completed",
       "work_completed": [
-        {
-          "task": "Docker setup with multi-stage build",
-          "status": "completed",
-          "deliverables": ["Dockerfile", "docker-compose.yml"]
-        },
-        {
-          "task": "CI pipeline with Lighthouse",
-          "status": "completed",
-          "deliverables": [".github/workflows/ci.yml"]
-        },
-        {
-          "task": "Vite config with proxy and code splitting",
-          "status": "completed",
-          "deliverables": ["vite.config.ts"]
-        }
+        { "task": "Docker setup with multi-stage build", "status": "completed", "deliverables": ["Dockerfile", "docker-compose.yml"] },
+        { "task": "CI pipeline with Lighthouse", "status": "completed", "deliverables": [".github/workflows/ci.yml"] },
+        { "task": "Vite config with proxy and code splitting", "status": "completed", "deliverables": ["vite.config.ts"] }
       ],
-      "files_touched": {
-        "created": ["Dockerfile", "docker-compose.yml", ".github/workflows/ci.yml", ".env.example", "vite.config.ts"],
-        "modified": [],
-        "deleted": []
-      },
+      "files_touched": { "created": ["Dockerfile", "docker-compose.yml", ".github/workflows/ci.yml", ".env.example", "vite.config.ts"], "modified": [], "deleted": [] },
       "blockers": []
     }
   ]
