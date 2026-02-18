@@ -296,3 +296,30 @@ Already enforced by Point 5 (Approval Protocol). When generating the prompt, emp
 5. **Circular escalation prevention.** If an escalation involves the role that would normally arbitrate (e.g., disagreement about the Critic's own review), skip that arbiter and escalate directly to the user.
 
 **Why it matters:** Without a defined post-escalation process, "STOP and escalate" is an instruction with no destination. Agents either deadlock (both waiting for resolution), silently pick one interpretation (defeating governance), or produce inconsistent results. This protocol gives every escalation a clear path to resolution.
+
+### QM-8: Drift Detection
+
+**What it is:** A periodic check where the Critic compares the current implementation direction against the Source of Truth, catching spec drift before it compounds.
+
+**When to run:** After every 2-3 completed tasks, or whenever a major milestone is reached. This is not continuous — it's a checkpoint.
+
+**Drift check process:**
+1. Re-read `{{SOURCE_OF_TRUTH}}` in full
+2. Compare current implementation (completed work, in-progress plans) against the spec
+3. Flag any drift:
+   - Features being built that aren't in the spec (scope creep)
+   - Spec requirements that no agent has picked up (gaps)
+   - Implementation that contradicts spec constraints (violations)
+4. Report using this format:
+
+```
+## Drift Check: [PASS / DRIFT DETECTED]
+- **Spec coverage:** [X of Y spec requirements addressed]
+- **Scope creep:** [Any work not traceable to the spec]
+- **Gaps:** [Spec requirements not yet assigned or planned]
+- **Action needed:** [None / RFC required / Escalation required]
+```
+
+**Who owns it:** The Critic. Drift detection is a standing responsibility, not a one-time task.
+
+**Why it matters:** Multi-agent spec drift is gradual and invisible. Each agent makes small, locally-reasonable decisions that collectively diverge from the spec. Without periodic realignment, the team can build the wrong thing while every individual agent believes they're following the rules.

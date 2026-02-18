@@ -241,7 +241,8 @@ At the end of each work session, save the entire team to `TEAM_AGENTS.json`. Thi
     "governance_version": "1.0.0",
     "created": "YYYY-MM-DD",
     "last_session": "YYYY-MM-DD",
-    "session_count": 1
+    "session_count": 1,
+    "pending_decisions": []
   },
   "agents": [
     {{FOR_EACH_AGENT}}
@@ -283,11 +284,12 @@ At the end of each work session, save the entire team to `TEAM_AGENTS.json`. Thi
 
 **When to save:** At the end of every session, the lead agent updates `TEAM_AGENTS.json` with each agent's current status, completed work, and any blockers.
 
-**When to load:** At the start of a session, if `TEAM_AGENTS.json` exists, agents read it to understand:
-- Their own role, scope, and boundaries (identity)
-- What they previously completed (history)
-- What other agents did (team context)
-- What's blocked and needs resolution (continuity)
+**When to load (Session Resume Protocol):** At the start of a session, if `TEAM_AGENTS.json` exists, follow this sequence:
+1. Read `TEAM_AGENTS.json` — restore agent identities, boundaries, scope, and work history
+2. Read `CLAUDE.md` — understand prior architectural decisions and any pending decisions
+3. Read `{{SOURCE_OF_TRUTH}}` — check for updates or changes since the last session
+4. Check each agent's `blockers` field — resolve or escalate outstanding blockers before starting new work
+5. Check `pending_decisions` at the team level — present any unresolved decisions to the user for resolution
 
 **Reuse scenarios:**
 - **Continue** — Same agents, same goals, pick up where they left off
@@ -309,6 +311,7 @@ At the end of each work session, save the entire team to `TEAM_AGENTS.json`. Thi
 - Prefer deterministic code; LLM/AI used only where specified.
 - Every change must preserve security invariants.
 - Test strategy is a deliverable, not an afterthought.
+- Critic runs a drift check after every 2-3 completed tasks: re-read the spec, flag scope creep, gaps, and violations.
 
 ---
 

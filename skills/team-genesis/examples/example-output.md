@@ -216,6 +216,7 @@ Create an Agent Team with the following teammates:
 - Plan review checklists (per plan submitted)
 - Security review notes
 - Test strategy validation reports
+- Drift check reports (after every 2-3 completed tasks)
 
 **Definition of Done:**
 - [ ] Every plan reviewed with explicit pass/fail per section
@@ -223,11 +224,13 @@ Create an Agent Team with the following teammates:
 - [ ] Test strategy validated for coverage of edge cases
 - [ ] Rejection feedback is specific and actionable (not "needs work")
 - [ ] All reviews logged in CLAUDE.md
+- [ ] Drift check performed: current work aligns with `PROJECT_BRIEF.md`
 
 **Stop Conditions — HALT and escalate if:**
 - A plan violates a security invariant and the author pushes back
 - Two agents have conflicting plans that both reference `PROJECT_BRIEF.md`
 - A plan requires a feature not in `PROJECT_BRIEF.md`
+- Drift check reveals work that cannot be traced back to `PROJECT_BRIEF.md`
 
 ---
 
@@ -488,7 +491,8 @@ At the end of each work session, save the entire team to `TEAM_AGENTS.json`. Thi
     "governance_version": "1.0.0",
     "created": "2026-02-14",
     "last_session": "2026-02-14",
-    "session_count": 1
+    "session_count": 1,
+    "pending_decisions": []
   },
   "agents": [
     {
@@ -706,6 +710,7 @@ At the end of each work session, save the entire team to `TEAM_AGENTS.json`. Thi
 - Prefer deterministic code; no AI/LLM calls in the API.
 - Every change must preserve JWT auth + rate limiting + input validation.
 - Test strategy is a deliverable, not an afterthought.
+- Critic runs a drift check after every 2-3 completed tasks: re-read the spec, flag scope creep, gaps, and violations.
 
 ---
 

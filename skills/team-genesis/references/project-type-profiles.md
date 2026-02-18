@@ -23,10 +23,11 @@ These three roles are present in every generated prompt regardless of project do
 - **DoD template:** All planned files created/updated. Unit tests written and passing. Edge cases handled or documented. No TODO comments without linked issues.
 
 ### Critic
-- **Purpose:** Review plans (not code) for completeness, security, testability, and edge case coverage.
-- **Typical scope:** Plan documents, schemas, data flows, test strategies.
+- **Purpose:** Review plans (not code) for completeness, security, testability, and edge case coverage. Perform periodic drift checks against the Source of Truth.
+- **Typical scope:** Plan documents, schemas, data flows, test strategies, spec compliance.
 - **Must NOT:** Write implementation code. Approve plans that violate security invariants. Rubber-stamp approvals.
 - **DoD template:** Plan approved with pass/fail per section. Test strategy validated. Known risks escalated. Rejection feedback is specific and actionable.
+- **Drift detection:** After every 2-3 completed tasks, re-read the Source of Truth and compare against current work. Flag scope creep, spec gaps, and constraint violations.
 
 ---
 

@@ -511,7 +511,8 @@ At the end of each work session, save the entire team to `TEAM_AGENTS.json`. Thi
     "governance_version": "1.0.0",
     "created": "2026-02-17",
     "last_session": "2026-02-17",
-    "session_count": 1
+    "session_count": 1,
+    "pending_decisions": []
   },
   "agents": [
     {

@@ -35,7 +35,13 @@ Ask the user for all inputs in a **single message**. Present them as a clear lis
    - **Update** — Same agents, but modify goals for a new feature (history preserved)
    - **New team** — Generate from scratch (existing file is archived to `TEAM_AGENTS.{date}.json`)
 
-If continuing or updating, load the agents from the file and skip role selection (Step 2). Only ask for new/modified goals.
+If continuing or updating, load the agents from the file and skip role selection (Step 2). Only ask for new/modified goals. Then follow the **Session Resume Protocol:**
+
+1. Read `TEAM_AGENTS.json` — restore agent identities, boundaries, scope, and work history
+2. Read `CLAUDE.md` — understand prior architectural decisions and any pending decisions logged from previous sessions
+3. Read `{{SOURCE_OF_TRUTH}}` — check for updates or changes since the last session
+4. Check each agent's `blockers` field — resolve or escalate outstanding blockers before starting new work
+5. Regenerate `AGENT_TEAM_PROMPT.md` with restored agents + any new/modified goals
 
 If the user provides all inputs upfront (e.g., in the initial message), skip the question step and proceed directly to generation.
 
@@ -48,7 +54,7 @@ Read `references/project-type-profiles.md` for the core roles and reference exam
 **Always include these core roles:**
 - **Architect** — System design, schemas, interface contracts
 - **Implementer** — Code writing per approved plans
-- **Critic** — Plan review, quality gates (reviews plans, not code)
+- **Critic** — Plan review, quality gates (reviews plans, not code), **periodic drift checks** against `{{SOURCE_OF_TRUTH}}`
 
 **Determine 1-3 specialist roles** based on the user's project description, tech stack, and goals. The reference examples in `project-type-profiles.md` demonstrate the expected depth and rigor for common domains (web apps, API services, CLI tools, libraries, data pipelines). Use them as calibration points, then apply the same governance standard to any domain — the system is not limited to those examples.
 
@@ -104,6 +110,7 @@ Before writing the output, verify the generated prompt passes all quality checks
 - [ ] No `{{...}}` placeholder syntax remains in the output — every placeholder has been replaced with a real value
 - [ ] All file paths in deliverables are specific (e.g., `src/models/user.ts`, not "create the models")
 - [ ] The "No code before plan approval" rule appears in both the Approval Protocol section and each agent's Stop Conditions
+- [ ] The Critic's responsibilities include periodic drift checks against the Source of Truth
 
 If a check fails, fix the generated content and re-verify before proceeding to Step 4.
 
@@ -139,6 +146,7 @@ Every generated prompt **must** satisfy these criteria:
 - **Security invariants appear** in both the dedicated section AND in relevant agents' constraints
 - **No agent may write code before plan approval** — this rule is in both the Approval Protocol and each agent's Stop Conditions
 - **File paths in deliverables are specific** — not "create the models" but "create `src/models/user.ts`, `src/models/task.ts`"
+- **Governance depth matches project complexity.** A simple project (2-3 features, single service, small scope) should produce leaner output — fewer interface contracts, shorter DoD checklists, combine sections where possible. A complex project (multi-service, regulated, large API surface) should produce full-depth output with additional contracts, stricter gates, and more granular stop conditions. Do not bury a simple CLI tool in the same ceremony as an enterprise platform.
 
 ---
 
@@ -187,7 +195,7 @@ Every generated prompt **must** satisfy these criteria:
 2. Apply full governance structure to each custom role
 3. Ask for any missing required inputs
 
-### Example 5: Novel project domain
+### Example 4: Novel project domain
 **User says:** "Create an agent team for a React Native mobile app with Firebase backend"
 
 **What you do:**
@@ -196,7 +204,7 @@ Every generated prompt **must** satisfy these criteria:
 3. Apply the same governance structure as the reference examples — DoD, Stop Conditions, boundaries, interface contracts
 4. Generate prompt with: Architect, Implementer, Critic, Mobile Specialist, Backend Specialist
 
-### Example 4: Reuse existing team
+### Example 5: Reuse existing team
 **User says:** "I want to add a notifications feature to TaskFlow"
 
 **What you do:**
