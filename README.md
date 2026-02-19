@@ -1,25 +1,30 @@
 # TeamGenesis
 
-A Claude Code **plugin** that generates enterprise-grade **Agent Team Prompts** with governance architecture, anti-drift boundaries, approval gates, interface contracts, and agent persistence.
+A Claude Code **plugin** that generates **Agent Team Prompts** — the governance documents that coordinate multiple AI agents working on a single project.
 
-When you spin up a multi-agent team, agents drift, guess, overbuild, and lack clear boundaries. TeamGenesis generates a structured prompt that prevents this — every agent gets explicit scope, a Definition of Done, Stop Conditions, and interface contracts with other agents. When the session ends, agents are saved to `TEAM_AGENTS.json` so you can reload the same team later.
+When you spin up a multi-agent team, agents drift, guess, overbuild, and lack clear boundaries. TeamGenesis generates a structured prompt that prevents this — every agent gets explicit scope, a Definition of Done, Stop Conditions, and interface contracts with other agents.
 
 ## What It Generates
 
-A complete Agent Team Prompt following the **8-Point Governance Architecture**:
+Two files with distinct purposes:
 
+| File | Purpose | Used when |
+|---|---|---|
+| `AGENT_TEAM_PROMPT.md` | **Sync file** — governance rules agents follow during work | Every session |
+| `TEAM_AGENTS.json` | **Memory file** — team identity + history for reload | Between sessions |
+
+The sync file contains:
 1. **Project Context** — Mission boundary, stack, source of truth
 2. **Source of Truth Rule** — Authority hierarchy (the spec overrides all assumptions)
 3. **Team Roster** — Agents with responsibilities and "Must NOT" boundaries
 4. **Responsibility Blocks** — Per-agent scope, deliverables, Definition of Done, Stop Conditions
-5. **Approval Protocol** — No code before plan approval
-6. **Interface Contracts** — Exact I/O schemas between agents with concrete examples
-7. **Operational Constraints** — Security invariants, dependency policy, simplicity rules
-8. **Agent Persistence** — Save agents to `TEAM_AGENTS.json` (roles, prompts, goals, completed work) for reuse
+5. **Interface Contracts** — Exact I/O schemas between agents with concrete examples
+6. **Approval Protocol** — No code before plan approval
+7. **Escalation Protocol** — What happens after an agent halts, including arbitration rules
+8. **Operational Constraints** — Security invariants, dependency policy, simplicity rules
+9. **Agent Persistence** — Save/reload instructions for `TEAM_AGENTS.json`
 
-Plus: Change Control (RFC process), Escalation Protocol, Documentation Sync, Budget Constraints, and Two-Layer Prompting architecture.
-
-See the [`examples/`](skills/team-genesis/examples/) directory for complete generated examples across different project domains (API service, CLI tool, web app, data pipeline).
+Plus: Change Control (RFC process), Documentation Sync, Budget Constraints, Drift Detection, and Two-Layer Prompting architecture.
 
 ## Installation
 
@@ -71,8 +76,6 @@ Then provide:
 - **Security Invariants** (optional)
 - **Custom Roles** (optional — override dynamically selected specialist roles)
 
-The plugin writes the generated prompt to `./AGENT_TEAM_PROMPT.md` and saves agents to `./TEAM_AGENTS.json`.
-
 ## Agent Reuse
 
 TeamGenesis saves your agents after each session. When you run `/team-genesis` again, it detects `TEAM_AGENTS.json` and asks:
@@ -81,13 +84,9 @@ TeamGenesis saves your agents after each session. When you run `/team-genesis` a
 - **Update** — Same agents, new goals (e.g., add a feature), prior work preserved
 - **New team** — Generate from scratch, archive existing team
 
-Each agent's JSON snapshot includes their role, purpose, scope, boundaries, goals, interface contracts, completed work, files touched, and blockers — everything needed to resume without context loss.
-
 ## Any Project Domain
 
-TeamGenesis works with **any project type** — not just a fixed list. The 3 core roles (Architect, Implementer, Critic) are always included, and 1-3 specialist roles are dynamically generated based on your project's description, tech stack, and goals.
-
-Reference examples for common domains (web apps, API services, CLI tools, libraries, data pipelines) are included to calibrate output quality, but the system handles any domain — mobile apps, ML pipelines, infrastructure-as-code, microservices, and more.
+TeamGenesis works with **any project type**. The 3 core roles (Architect, Implementer, Critic) are always included, and 1-3 specialist roles are dynamically generated based on your project's description, tech stack, and goals.
 
 You can also define **custom roles** — TeamGenesis applies the same governance structure (DoD, Stop Conditions, interface contracts, boundaries) to any role you specify.
 
@@ -96,19 +95,12 @@ You can also define **custom roles** — TeamGenesis applies the same governance
 ```
 TeamGenesis/
 ├── .claude-plugin/
-│   └── plugin.json                       # Plugin manifest
+│   └── plugin.json                        # Plugin manifest
 ├── skills/
 │   └── team-genesis/
-│       ├── SKILL.md                      # Core skill (frontmatter + instructions)
-│       ├── references/
-│       │   ├── governance-architecture.md  # 8-Point Architecture + Quality Multipliers
-│       │   ├── prompt-template.md          # Output template with placeholders
-│       │   └── project-type-profiles.md    # Core roles + reference examples for specialist roles
-│       └── examples/
-│           ├── example-output.md           # API service example (TaskFlow)
-│           ├── example-cli-tool.md         # CLI tool example (deploy-cli)
-│           ├── example-web-app.md          # Web app example (PulseBoard)
-│           └── example-data-pipeline.md    # Data pipeline example (DataSync)
+│       ├── SKILL.md                       # Skill instructions + template + governance
+│       └── references/
+│           └── project-type-profiles.md   # Core roles + specialist role examples
 ├── README.md
 └── LICENSE
 ```
