@@ -1,392 +1,208 @@
 ---
 name: team-genesis
-description: "Generate enterprise-grade Agent Team prompts with governance architecture, anti-drift boundaries, approval gates, and interface contracts. Use when creating a new multi-agent team, setting up agent roles and responsibilities, defining agent team coordination, or starting a project that needs structured AI agent collaboration. Trigger phrases: create agent team, set up team prompt, generate team charter, new agent team, team genesis, spin up agents, agent coordination."
+description: "Generate compact Agent Team governance that goes directly into CLAUDE.md — auto-loaded, no manual referencing needed. Agents update their state in the same file. Use when creating a new multi-agent team, setting up agent roles, or starting a project that needs structured AI agent collaboration. Trigger phrases: create agent team, set up team prompt, generate team charter, new agent team, team genesis, spin up agents, agent coordination."
 tags: [agents, team, governance, architecture, multi-agent, coordination]
 ---
 
 # TeamGenesis: Agent Team Architecture Generator
 
-You are a Governance Architect. You convert a project idea into a strict Agent Team Prompt that prevents hallucination, scope creep, and late-stage rework.
+You generate compact Agent Team governance that appends to `CLAUDE.md`. Claude Code auto-loads `CLAUDE.md` at session start — no `@` referencing, no extra token cost. Agents read it, follow it, and update their state in it.
 
-**Do NOT use this skill for:** General coding tasks, single-agent work, code review, debugging, or documentation. This is only for generating multi-agent team coordination prompts.
+**Do NOT use this skill for:** General coding tasks, single-agent work, code review, debugging, or documentation.
 
 ---
 
 ## Step 1: Gather Inputs
 
-Ask the user for all inputs in a **single message**. Present them as a clear list with examples.
+Ask for all inputs in a **single message**.
 
-**Required inputs:**
-1. **Project Name** — Name of the project (e.g., "TaskFlow", "PolicyAlign")
-2. **Primary Goal** — One sentence describing what the team will build (e.g., "Build a REST API for task management with user auth")
-3. **Tech Stack** — Languages, frameworks, runtime (e.g., "Node 20, TypeScript, Express, PostgreSQL")
-4. **Source of Truth file** — The file that serves as the canonical spec (e.g., `PROJECT_BRIEF.md`, `PRD.md`). If the project doesn't have one yet, offer to generate a template.
+**Required:**
+1. **Project Name** — e.g., "TaskFlow"
+2. **Primary Goal** — One sentence
+3. **Tech Stack** — Languages, frameworks, runtime
+4. **Source of Truth** — The canonical spec file (e.g., `PROJECT_BRIEF.md`). Offer to create a template if it doesn't exist.
 
-**Optional inputs (provide defaults if skipped):**
-5. **Security Invariants** — Non-negotiable security rules. Default: no secrets in code, validate all user input, parameterized DB queries, escape HTML output.
-6. **Custom Roles** — User-defined agent roles to use instead of (or in addition to) the dynamically selected specialists. Default: auto-selected based on project description and tech stack.
-7. **Output file path** — Where to write the generated prompt. Default: `./AGENT_TEAM_PROMPT.md`.
+**Optional (defaults if skipped):**
+5. **Security Invariants** — Default: no secrets in code, validate input, parameterized queries, escape HTML
+6. **Custom Roles** — Override auto-selected specialists
 
-**Before asking for inputs**, check if `TEAM_AGENTS.json` exists in the project root. If it does:
+If inputs provided upfront, skip questions and generate.
 
-1. Check the `governance_version` field in the JSON. If it differs from the current governance version (`1.0.0`), warn the user: "This team was generated with governance v{old_version}. The current version is v1.0.0. Recommend regenerating to pick up governance improvements."
-2. Ask the user:
-   - **Continue** — Reload the same agents with their history, pick up where they left off
-   - **Update** — Same agents, but modify goals for a new feature (history preserved)
-   - **New team** — Generate from scratch (existing file is archived to `TEAM_AGENTS.{date}.json`)
+**Before asking:** Check if `CLAUDE.md` contains a `## Team Governance` section. If yes, ask:
+- **Continue** — Same agents, same goals, resume where they left off
+- **Update** — Same agents, new goals, state preserved
+- **New** — Regenerate (old section archived as HTML comment)
 
-If continuing or updating, load the agents from the file and skip role selection (Step 2). Only ask for new/modified goals. Then follow the **Session Resume Protocol:**
-
-1. Read `TEAM_AGENTS.json` — restore agent identities, boundaries, scope, and work history
-2. Read `CLAUDE.md` — understand prior architectural decisions and any pending decisions
-3. Read the Source of Truth file — check for updates or changes since the last session
-4. Check each agent's `blockers` field — resolve or escalate outstanding blockers before starting new work
-5. Regenerate `AGENT_TEAM_PROMPT.md` with restored agents + any new/modified goals
-
-If the user provides all inputs upfront (e.g., in the initial message), skip the question step and proceed directly to generation.
+If continuing/updating:
+1. Read existing Agent State table — check for blockers and completed work
+2. Read decision log entries in CLAUDE.md — understand prior context
+3. Read Source of Truth — check for changes since last session
+4. Resolve blockers before starting new work
 
 ---
 
 ## Step 2: Select Agent Roles
 
-Read `references/project-type-profiles.md` for the core roles and reference examples.
+Read `references/project-type-profiles.md` for core roles and specialist examples.
 
-**Always include these core roles:**
-- **Architect** — System design, schemas, interface contracts
-- **Implementer** — Code writing per approved plans
-- **Critic** — Plan review, quality gates, **periodic drift checks** against the Source of Truth
+**Always include:**
+- **Architect** — System design, schemas, contracts
+- **Implementer** — Code per approved plans
+- **Critic** — Plan review, quality gates, drift checks
 
-**Determine 1-3 specialist roles** based on the user's project description, tech stack, and goals. The reference examples in `project-type-profiles.md` demonstrate the expected depth for common domains. Use them as calibration, then apply the same governance standard to any domain.
-
-**Every specialist role must have the full governance structure:** purpose, scope, responsibilities, boundaries ("Must NOT"), Definition of Done, Stop Conditions, and test requirements.
-
-**If user provided custom roles:** Use them instead of (or in addition to) the dynamically selected specialists. Apply the same governance structure. Ask clarifying questions if a role name is ambiguous.
+**Add 1-3 specialists** based on the project. Every role gets: scope, boundaries ("Must NOT"), DoD, stop conditions. _(Without negative boundaries, agents expand scope — an Architect who can code will start coding.)_
 
 ---
 
-## Step 3: Generate the Agent Team Prompt
+## Step 3: Generate
 
-Generate a complete Agent Team Prompt. Fill every section with the user's actual inputs — be specific with file paths, schema examples, and test targets.
+Generate a compact governance block. The **entire block must fit under 80 lines** — it lives in CLAUDE.md which loads every session. Every line must earn its place.
 
-The generated prompt begins with:
+### Output Format
+
+The generated block follows this structure:
+
+```markdown
+## Team Governance
+<!-- TeamGenesis v1.0.0 | {DATE} | {PROJECT_NAME} -->
+
+### Source of Truth
+`{SOURCE_OF_TRUTH}` is law. Authority: spec > approved plans > this charter > agent judgment.
+If ambiguous, STOP and ask — do not infer, assume, or invent.
+
+### Team
+| Agent | Scope | Must NOT |
+|---|---|---|
+| {Role} | {owned files/dirs} | {concrete boundaries} |
+
+### Agent Definitions
+
+#### {Role}
+- **DoD:** {3-5 binary checkable items}
+- **Stop if:** {2-3 specific halt conditions}
+- **Tests:** {unit + integration targets}
+
+### Contracts
+| From | To | Artifact | Format |
+|---|---|---|---|
+| Architect | Implementer | Data schemas | TypeScript types in `src/types/` |
+
+### Rules
+1. **Plan before code.** Plans: steps, files, schemas, edge cases, tests, rollback. Critic approves.
+2. **Stay in scope.** Cross-boundary changes require RFC.
+3. **Contracts are binding.** Typed interfaces between agent pairs.
+4. **Security: {invariants}.** Violation = halt and escalate.
+5. **Drift check.** Critic re-reads spec every 2-3 tasks.
+6. **Log decisions** in this file: context, alternatives, chosen approach, consequences.
+7. **Escalation → user.** Format: decision needed, options, recommendation, blocked work.
+
+### Agent State
+<!-- Agents: update this table as you work -->
+| Agent | Status | Current Task | Completed | Blockers |
+|---|---|---|---|---|
+| {Role} | idle | - | - | - |
 ```
-<!-- Generated by TeamGenesis | Governance v1.0.0 | Date: YYYY-MM-DD -->
-```
 
-### Section Structure
+### Quality Floors
 
-**1. Project Context** — Project name, one-line goal, tech stack, source of truth file path. _(Without an explicit boundary, agents invent requirements that sound plausible but aren't in the spec.)_
-
-**2. Source of Truth Rule** — The authority hierarchy that resolves all conflicts:
-1. Source of Truth file (highest authority)
-2. Approved plans (approved by Critic)
-3. Team Charter (the generated prompt)
-4. Agent judgment (lowest — must defer to above)
-
-Include: "If the Source of Truth is silent or ambiguous, STOP and ask — do not infer, assume, or invent." _(Without this, agents fill ambiguity with hallucinated requirements — the single most common governance failure.)_
-
-**3. Team Roster** — All agents with role name, purpose (one-line), 3-5 responsibilities, and 2-3 "Must NOT" boundaries. _(Without negative boundaries, agents expand scope — an Architect who can also code will start coding.)_ Floor: every boundary is a concrete action (`Must NOT write implementation code`), not a vague directive (`Must NOT overstep`).
-
-**4. Agent Responsibility Blocks** — Per agent:
-- **Scope:** Owned files and modules (specific paths)
-- **Deliverables:** Exact files this agent produces. Floor: real file paths (`src/models/user.ts`), not categories ("create the models").
-- **Definition of Done:** 3-5 measurable, yes/no checkable items. Floor: each item is a binary check (`All unit tests passing`), not subjective (`code is clean`).
-- **Stop Conditions:** 2-3 specific situations where this agent halts and escalates. Floor: at least one explicit "if X happens, escalate to Y" rule.
-- **Test Requirements:** Unit and integration test targets
-
-**5. Interface Contracts** — For every agent pair that exchanges work: exact input format, output format, and one concrete example. _(Without contracts, two agents silently assume different schemas — the most common cause of integration failures in agent teams.)_ Floor: typed interface with at least 3 named fields, not `data: any`.
-
-**6. Approval Protocol** — The plan-first gate. **No code before plan approval.** _(Without this gate, agents write code based on their interpretation of the spec, then discover conflicts at integration time — when the fix cost is 10x higher.)_ Every plan must include:
-1. Steps (ordered sequence)
-2. Files touched/created (exact paths)
-3. Data formats (schemas with examples)
-4. Edge cases and failure modes
-5. Test approach
-6. Rollback strategy
-
-The Critic reviews and approves the **plan** (not the code). Rejections include specific feedback.
-
-**7. Stop Conditions (Global)** — When ALL agents must halt: source of truth ambiguous, security constraints affected, unplanned dependency needed, interface contract would break, cross-boundary file modification needed.
-
-**7.1. Escalation Protocol** — What happens after an agent halts. _(Without a defined post-halt process, agents either deadlock or silently pick one interpretation — defeating governance.)_
-- **Escalation format:** title, decision needed, 2-3 options, recommendation, blocked work
-- All escalations go to the user
-- If user unavailable: log in `CLAUDE.md` as "Pending Decision," mark agent as `blocked` in `TEAM_AGENTS.json`, continue unrelated work
-- Agent-to-agent disputes: Critic arbitrates implementation disputes, Architect arbitrates architecture disputes. If arbiter is party to the dispute, escalate to user
-- Boundary overrides require explicit user approval — no agent may override another's "Must NOT"
-
-**8. Change Control (RFC Process)** — Any change not in the Source of Truth requires an RFC (why needed, impacted files, risk level, who approves) before implementation. _(Without this, agents introduce unplanned features that look reasonable individually but collectively cause scope creep.)_
-
-**9. Operational Constraints** — Runtime, module system, sandboxed write paths, dependency policy, simplicity rule.
-
-**10. Security Invariants** — Unchangeable rules that must never be broken. If the user didn't provide any, use defaults: no secrets in code/logs, validate all user input, parameterized DB queries, escape HTML output. Also embed these in relevant agents' boundaries and stop conditions.
-
-**11. Documentation Sync Rule** — All agents update `CLAUDE.md` when making architectural decisions, using a structured format: context, alternatives considered, chosen approach, consequences, owner, date. _(Without structured decision logging, later agents undo earlier decisions because they don't know why things were built that way.)_
-
-**12. Budget and Simplicity Constraints** — Simplest implementation, no framework bloat, no premature abstractions, phase 2/3 must not block phase 1. _(Agents over-engineer by default — they add abstractions, utilities, and "nice to have" features. This section forces focus.)_
-
-**13. Agent Persistence** — Instructions to save the team to `TEAM_AGENTS.json` at session end and reload at session start (Session Resume Protocol). See Step 4 for the JSON schema.
-
-Plus appendices:
-- **High-Leverage One-Liners** — Short rules: treat spec as law, output schemas first, test strategy is a deliverable, Critic runs periodic drift checks
-- **Prompting Architecture** — Layer 1 (Team Charter, immutable during session) + Layer 2 (per-agent micro-prompts, dynamic per task)
+Even in compact format, every element must meet these minimums:
+- **Boundaries:** Concrete actions (`Must NOT write implementation code`), not vague (`Must NOT overstep`)
+- **DoD items:** Binary checks (`All unit tests passing`), not subjective (`code is clean`)
+- **Contracts:** Real artifact with format (`TypeScript types in src/types/`), not abstract (`data exchange`)
+- **Stop conditions:** Explicit trigger + action (`if spec ambiguous on data relationship, escalate to user`)
 
 ### Governance Scaling
 
-Match governance depth to project complexity. Do not bury a simple CLI tool in the same ceremony as an enterprise platform.
-
-| Project scope | Agents | Contracts | Example depth | DoD items |
-|---|---|---|---|---|
-| **Small** (1 domain, 1-2 features) | 3-4 | 2-4 | One-line pseudocode | 3 per agent |
-| **Medium** (2-3 domains, 3-5 features) | 4-5 | 5-8 | Typed interface snippets | 4-5 per agent |
-| **Large** (multi-domain, 5+ features) | 5-6 | 8-12+ | Full typed + sequenced | 5-6 per agent |
+| Scope | Agents | Contracts | DoD depth |
+|---|---|---|---|
+| **Small** (1-2 features) | 3-4 | 2-4 | 2-line DoD, 1-line stop |
+| **Medium** (3-5 features) | 4-5 | 5-8 | 3-line DoD, 2-line stop |
+| **Large** (5+ features) | 5-6 | 8-12 | 5-line DoD, 3-line stop |
 
 ---
 
-## Step 3.5: Self-Validate Before Writing
+## Step 3.5: Self-Validate
 
-Before writing the output, verify the generated prompt passes all quality checks. If any check fails, fix it before proceeding.
-
-**Validation checklist:**
-- [ ] Every agent has a Definition of Done with at least 3 measurable, yes/no checkable items
-- [ ] Every agent has at least 2 Stop Conditions
-- [ ] Every interface contract includes a concrete example (real data, not format descriptions)
-- [ ] Security invariants appear in both Section 10 AND in relevant agents' boundaries
-- [ ] The Source of Truth file is referenced in every agent's stop conditions
-- [ ] All file paths in deliverables are specific
-- [ ] "No code before plan approval" appears in both the Approval Protocol and each agent's Stop Conditions
-- [ ] The Critic's responsibilities include periodic drift checks
+Before writing, verify:
+- [ ] Every agent has DoD with ≥3 binary items
+- [ ] Every agent has ≥2 stop conditions
+- [ ] Every contract specifies artifact + format
+- [ ] Security invariants in both Rules AND relevant agent boundaries
+- [ ] Source of Truth referenced in stop conditions
+- [ ] Total governance block ≤ 80 lines
 
 ---
 
 ## Step 4: Output
 
-### Two output files
-
-The system produces two files with distinct purposes:
-
-**`AGENT_TEAM_PROMPT.md`** (default, or user-specified path) — The **sync file**. Contains the governance rules, boundaries, contracts, and protocols agents follow during work. Agents reference this throughout the session.
-
-**`TEAM_AGENTS.json`** (project root) — The **memory file**. Saves every agent's identity and work history so the team can be reloaded without recreating from scratch.
-
-| File | Purpose | Format | When used |
-|---|---|---|---|
-| `AGENT_TEAM_PROMPT.md` | Rules of engagement | Markdown | During work (every session) |
-| `TEAM_AGENTS.json` | Team identity + history | JSON | Between sessions (save/reload) |
-
-### TEAM_AGENTS.json schema
-
+1. **Read existing `CLAUDE.md`** if present. Preserve all non-TeamGenesis content.
+2. **Append** the `## Team Governance` section (or replace existing one).
+3. **Write `TEAM_AGENTS.json`** — minimal identity file for reload detection:
 ```json
 {
-  "team": {
-    "project_name": "...",
-    "source_of_truth": "...",
-    "governance_version": "1.0.0",
-    "created": "YYYY-MM-DD",
-    "last_session": "YYYY-MM-DD",
-    "session_count": 1,
-    "pending_decisions": []
-  },
-  "agents": [
-    {
-      "role": "Agent Role Name",
-      "purpose": "One-line purpose",
-      "scope": ["src/models/", "prisma/"],
-      "boundaries": ["Must NOT write implementation code"],
-      "goals": ["Design schemas for users and tasks"],
-      "interface_contracts": {
-        "outputs_to": ["Implementer"],
-        "inputs_from": []
-      },
-      "status": "completed | blocked | escalated",
-      "work_completed": [
-        {
-          "task": "Description",
-          "status": "completed | in_progress | blocked",
-          "deliverables": ["file/path"]
-        }
-      ],
-      "files_touched": {
-        "created": [],
-        "modified": [],
-        "deleted": []
-      },
-      "blockers": []
-    }
-  ]
+  "team": "{PROJECT_NAME}",
+  "source_of_truth": "{SOURCE_OF_TRUTH}",
+  "governance_version": "1.0.0",
+  "created": "{DATE}",
+  "agents": ["{Role1}", "{Role2}"]
 }
 ```
+4. **Show summary:** team composition, lines added to CLAUDE.md.
 
-**When to save:** End of every session — update each agent's status, completed work, and blockers.
+### Why this model works
 
-**When to load:** Start of session, if file exists — follow Session Resume Protocol (Step 1).
-
-### After writing both files
-
-**Show a summary:**
-- Project name and goal
-- Team composition (list of agent roles)
-- Number of interface contracts defined
-- Key security invariants
-- Output file paths
-
-**Suggest next steps:**
-- Review the generated prompt and adjust roles/boundaries
-- Create the Source of Truth file if it doesn't exist
-- Use the prompt when creating an Agent Team in Claude Code
-- After the session, agents auto-save to `TEAM_AGENTS.json`
-- To reuse the team later, run `/team-genesis` again
-
----
-
-## Output Quality Rules (Non-Negotiable)
-
-- **Every agent has a Definition of Done** with measurable, yes/no checkable items (not "code is clean" — instead "no TODO comments without linked issues")
-- **Every agent has Stop Conditions** — specific situations where they halt and escalate
-- **Interface contracts include concrete examples** — real JSON objects, real CLI commands, real file paths
-- **The Source of Truth is referenced** in every agent's context and stop conditions
-- **Security invariants appear** in both the dedicated section AND relevant agents' constraints
-- **No code before plan approval** — in both the Approval Protocol and each agent's Stop Conditions
-- **File paths are specific** — `src/models/user.ts`, not "create the models"
+| Concern | Solution |
+|---|---|
+| Token cost | < 80 lines, auto-loaded — no extra `@` reference cost |
+| Agent state | State table in CLAUDE.md — agents edit it naturally |
+| Persistence | CLAUDE.md survives between sessions, auto-loaded next time |
+| Reload detection | TEAM_AGENTS.json (~5 lines) lets the skill detect existing teams |
+| Decision history | Agents log decisions in CLAUDE.md per Rule 6 |
 
 ---
 
 ## Error Handling
 
-**If the user provides incomplete inputs:**
-- For missing required inputs: ask specifically for what's missing, don't proceed without it
-- For missing optional inputs: use the defaults listed in Step 1
-
-**If the specialist roles are unclear from the project description:**
-- Ask the user to clarify. Example: "Your stack includes both React and Express — should I create specialists for both frontend and backend, or focus on one side?"
-
-**If the user requests roles that conflict:**
-- Flag the conflict. Example: "You've asked for both an Implementer and a Full-Stack Developer. These roles overlap — should the Full-Stack Developer replace the Implementer, or should they have separate scopes?"
-
-**If the Source of Truth file doesn't exist:**
-- Offer to create a minimal template with sections for: Project Goal, Features, Tech Stack, Constraints, and Security Requirements.
+- **Missing required inputs:** Ask specifically for what's missing
+- **Missing optional inputs:** Use defaults
+- **Ambiguous roles:** Ask to clarify
+- **Conflicting roles:** Flag overlap, ask resolution
+- **No Source of Truth file:** Offer to create template
+- **Existing CLAUDE.md TeamGenesis section:** Ask continue/update/new
 
 ---
 
 ## Examples
 
-### Example 1: Minimal input
-**User says:** "Create an agent team for my new Node.js CLI tool called `deploy-cli`"
+### Minimal input
+"Create an agent team for my Node.js CLI tool deploy-cli"
+→ Ask for goal, spec file, stack. Generate: Architect, Implementer, Critic, CLI Specialist. Append to CLAUDE.md.
 
-**What you do:**
-1. Ask for: Primary Goal, Source of Truth file, Tech Stack details
-2. Use defaults for security invariants and output path
-3. Determine specialist: CLI/DX Specialist
-4. Generate prompt with: Architect, Implementer, Critic, CLI/DX Specialist
+### Full input
+"Team for TaskFlow, Node 20/TS/Express/PostgreSQL, goal: task management with auth, spec: PROJECT_BRIEF.md"
+→ Skip questions. Generate immediately. Append to CLAUDE.md.
 
-### Example 2: Full input
-**User says:** "Generate a team prompt for TaskFlow, a REST API built with Node 20/TypeScript/Express/PostgreSQL. Goal: task management with auth. Source of truth: PROJECT_BRIEF.md. Security: JWT on all endpoints, rate limiting on auth, no secrets in code."
-
-**What you do:**
-1. All required inputs provided — skip questions
-2. Determine specialists: API Designer + DevOps
-3. Generate prompt immediately
-4. Write to `./AGENT_TEAM_PROMPT.md`
-
-### Example 3: Custom roles
-**User says:** "I need a team for my ML pipeline. Roles: Data Scientist, ML Engineer, Platform Engineer, Reviewer."
-
-**What you do:**
-1. Use custom roles, keep core Critic role (maps to "Reviewer")
-2. Apply full governance structure to each custom role
-3. Ask for any missing required inputs
-
-### Example 4: Novel domain
-**User says:** "Create an agent team for a React Native mobile app with Firebase backend"
-
-**What you do:**
-1. Ask for: Project Name, Primary Goal, Source of Truth file
-2. Determine specialists: Mobile Specialist + Backend Specialist
-3. Apply same governance structure
-4. Generate prompt with: Architect, Implementer, Critic, Mobile Specialist, Backend Specialist
-
-### Example 5: Reuse existing team
-**User says:** "I want to add a notifications feature to TaskFlow"
-
-**What you do:**
-1. Detect `TEAM_AGENTS.json` exists — read it
-2. Ask: Continue, Update, or New?
-3. User picks "Update" — follow Session Resume Protocol
-4. Ask for new goals
-5. Regenerate with same agents, new goals, preserved history
+### Reuse
+"Add notifications to TaskFlow"
+→ Detect `## Team Governance` in CLAUDE.md. Ask continue/update/new. Preserve agent state.
 
 ---
 
 ## Reference Floor
 
-This section shows the **minimum quality bar** for three key elements: an agent responsibility block, an interface contract, and a governance decision. This is a floor, not a ceiling — complex projects should exceed this depth.
-
-### Agent Responsibility Block (floor)
+Minimum quality bar for a compact agent definition:
 
 ```markdown
-### Architect
-
-**Scope:** `prisma/schema.prisma`, `src/types/`, `docs/architecture.md`
-
-**Deliverables:**
-- Prisma schema (`prisma/schema.prisma`)
-- Shared TypeScript types (`src/types/task.ts`, `src/types/user.ts`)
-- Architecture decision log (`docs/architecture.md`)
-
-**Definition of Done:**
-- [ ] Prisma schema includes all models with field types, relations, and indexes
-- [ ] TypeScript types exported and importable by Implementer without modification
-- [ ] Every model has at least one example JSON object in the schema comments
-- [ ] No `any` types in shared type definitions
-
-**Stop Conditions — HALT and escalate if:**
-- `PROJECT_BRIEF.md` doesn't specify a data relationship (e.g., "can a task belong to multiple users?")
-- A proposed schema change would require Implementer to modify already-approved code
-- Security invariants would be affected by a schema decision (e.g., storing passwords)
-
-**Test Requirements:**
-- Unit tests for: type guard functions in `src/types/`
-- Integration tests for: Prisma migration runs cleanly, seed data loads without errors
+#### Architect
+- **DoD:** Prisma schema has all models with types, relations, indexes · TypeScript types importable without modification · No `any` in shared types · Every model has example JSON in comments
+- **Stop if:** Spec ambiguous on data relationship · Schema change would break approved code · Security affected by schema decision
+- **Tests:** Unit: type guards in `src/types/` · Integration: Prisma migration + seed
 ```
 
-### Interface Contract (floor)
+Minimum quality bar for a contract row:
 
-```markdown
-### Architect -> Implementer
-- **Input:** Prisma schema + TypeScript type definitions
-- **Output:** Implementation follows schema exactly; any deviation requires an RFC
-- **Example:**
-​```typescript
-// Architect outputs (src/types/task.ts):
-export interface Task {
-  id: string;
-  title: string;
-  status: "pending" | "in_progress" | "completed";
-  assigneeId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreateTaskInput {
-  title: string;
-  assigneeId: string;
-  status?: Task["status"]; // defaults to "pending"
-}
-
-// Implementer consumes this type directly — no re-definition allowed.
-// If the Implementer needs a field not in this type, they file an RFC.
-​```
+```
+| Architect | Implementer | Prisma schema + TS types | `prisma/schema.prisma` + `src/types/*.ts` — Implementer consumes directly, deviation requires RFC |
 ```
 
-### Governance Decision (floor)
-
-```markdown
-## Decision: Use Prisma ORM over raw SQL
-- **Context:** Need a database access layer for PostgreSQL. Two options evaluated.
-- **Alternatives considered:** (1) Raw SQL with pg driver — maximum control, no abstraction cost. (2) Prisma ORM — type-safe queries, auto-generated migrations, schema-as-code.
-- **Chosen approach:** Prisma ORM. Type safety aligns with TypeScript-first stack. Schema-as-code gives Architect a single file to own. Migration history provides rollback capability.
-- **Consequences:** Adds ~2MB to node_modules. Complex queries may need `$queryRaw`. Implementer must use Prisma Client, not direct SQL.
-- **Owner:** Architect | **Date:** 2026-02-20
-```
-
-These three examples define the quality floor. Every agent block, contract, and decision in the generated output should meet or exceed this level of specificity.
+Every agent definition and contract in the output should meet or exceed this specificity.
