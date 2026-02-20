@@ -113,11 +113,16 @@ Generate a starter template:
 ```markdown
 # Session Notes (private — not committed)
 
+Use CLAUDE.local.md when:
+- A decision is still in draft (not yet final)
+- Context is personal or session-specific
+- Thinking is mid-thought and not ready to commit
+
+Promote to CLAUDE.md only when decided.
+
 ## Draft Decisions
-<!-- Use this for decisions not ready to share with the team -->
 
 ## Scratch Space
-<!-- Mid-thought work, experiments, notes to self -->
 ```
 
 ### Quality Floors
