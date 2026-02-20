@@ -1,28 +1,29 @@
 # TeamGenesis
 
-A Claude Code **plugin** that generates compact **Agent Team governance** directly into `CLAUDE.md` — auto-loaded every session, no manual `@` referencing needed.
+A Claude Code **plugin** that generates compact **Agent Team governance** directly into `CLAUDE.md` — auto-loaded every session, zero setup.
 
-When you spin up a multi-agent team, agents drift, guess, overbuild, and lack clear boundaries. TeamGenesis generates a compact governance block (< 80 lines) with roles, boundaries, contracts, and a state table that agents update as they work.
+When you spin up a multi-agent team, agents drift, guess, overbuild, and lack clear boundaries. TeamGenesis generates a compact governance block (< 80 lines) with roles, contracts, rules, and a state table that agents update as they work.
 
 ## How It Works
 
 1. Run `/team-genesis` and provide your project details
 2. TeamGenesis appends a `## Team Governance` section to your `CLAUDE.md`
-3. Claude Code auto-loads `CLAUDE.md` — agents see the rules immediately
+3. Claude Code auto-loads it — agents see the rules immediately
 4. Agents update the **Agent State** table during work
 5. Next session: everything persists, no setup needed
 
 ## What It Generates
 
-A compact governance block in `CLAUDE.md` containing:
-- **Source of Truth Rule** — spec is law, ambiguity = stop and ask
-- **Team Table** — every agent's scope and "Must NOT" boundaries
-- **Agent Definitions** — DoD, stop conditions, test targets per agent
-- **Contracts** — typed artifact exchange between agent pairs
-- **Rules** — plan-before-code, security, drift checks, escalation
-- **Agent State** — live table agents update during work
+**`CLAUDE.md`** (committed, auto-loaded) — compact governance block containing:
+- **Team Roster** — agents + one-line role each
+- **Handoff Contracts** — typed input/output per agent pair
+- **Governance Rules** — compact, with inline anti-pattern rationale
+- **Agent State** — live table agents update after every task
 
-Plus a minimal `TEAM_AGENTS.json` (~5 lines) for reload detection.
+**`CLAUDE.local.md`** (private, never committed) — session scratch space:
+- Draft decisions not ready to share
+- Personal session notes
+- Mid-thought work
 
 ## Installation
 
