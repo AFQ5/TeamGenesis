@@ -15,12 +15,22 @@ These three roles are present in every generated prompt regardless of project do
 - **Typical scope:** Data models, API surface design, system boundaries, technology decisions.
 - **Must NOT:** Write implementation code. Approve plans without checking security invariants.
 - **DoD template:** Schema files created with examples. Interface contracts documented between all agents. Architectural risks identified and logged in CLAUDE.md.
+- **Common failure modes:**
+  - Designs schemas in isolation without checking Implementer's constraints (e.g., ORM limitations)
+  - Over-architects with abstractions that no current feature requires
+  - Defines interface contracts at the wrong granularity — too abstract for Implementer to code against, or too rigid to accommodate edge cases
+  - Silently changes schemas after Implementer has started work, breaking the contract
 
 ### Implementer
 - **Purpose:** Write production code per the approved plan.
 - **Typical scope:** Source files, business logic, data access layer, external integrations.
 - **Must NOT:** Change architecture without Architect approval. Add dependencies without RFC. Skip tests.
 - **DoD template:** All planned files created/updated. Unit tests written and passing. Edge cases handled or documented. No TODO comments without linked issues.
+- **Common failure modes:**
+  - Starts coding before the plan is fully approved — "I'll just get a head start"
+  - Adds helper utilities or abstractions not in the plan ("while I'm here...")
+  - Writes tests that only cover the happy path, skipping edge cases identified in the plan
+  - Modifies files owned by another agent without noticing the boundary
 
 ### Critic
 - **Purpose:** Review plans (not code) for completeness, security, testability, and edge case coverage. Perform periodic drift checks against the Source of Truth.
@@ -28,6 +38,11 @@ These three roles are present in every generated prompt regardless of project do
 - **Must NOT:** Write implementation code. Approve plans that violate security invariants. Rubber-stamp approvals.
 - **DoD template:** Plan approved with pass/fail per section. Test strategy validated. Known risks escalated. Rejection feedback is specific and actionable.
 - **Drift detection:** After every 2-3 completed tasks, re-read the Source of Truth and compare against current work. Flag scope creep, spec gaps, and constraint violations.
+- **Common failure modes:**
+  - Produces vague feedback ("improve error handling") without referencing specific contracts or files
+  - Rubber-stamps plans to avoid blocking progress — the most dangerous failure mode
+  - Over-indexes on edge cases before core flows are validated
+  - Flags issues already handled by governance rules — wastes tokens, dilutes real signals
 
 ---
 

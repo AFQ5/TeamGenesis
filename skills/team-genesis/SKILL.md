@@ -75,7 +75,7 @@ The generated prompt begins with:
 
 ### Section Structure
 
-**1. Project Context** — Project name, one-line goal, tech stack, source of truth file path. This is the mission boundary — without it, agents invent requirements.
+**1. Project Context** — Project name, one-line goal, tech stack, source of truth file path. _(Without an explicit boundary, agents invent requirements that sound plausible but aren't in the spec.)_
 
 **2. Source of Truth Rule** — The authority hierarchy that resolves all conflicts:
 1. Source of Truth file (highest authority)
@@ -83,20 +83,20 @@ The generated prompt begins with:
 3. Team Charter (the generated prompt)
 4. Agent judgment (lowest — must defer to above)
 
-Include: "If the Source of Truth is silent or ambiguous, STOP and ask — do not infer, assume, or invent."
+Include: "If the Source of Truth is silent or ambiguous, STOP and ask — do not infer, assume, or invent." _(Without this, agents fill ambiguity with hallucinated requirements — the single most common governance failure.)_
 
-**3. Team Roster** — All agents with role name, purpose (one-line), 3-5 responsibilities, and 2-3 "Must NOT" boundaries. Without negative boundaries, agents expand scope.
+**3. Team Roster** — All agents with role name, purpose (one-line), 3-5 responsibilities, and 2-3 "Must NOT" boundaries. _(Without negative boundaries, agents expand scope — an Architect who can also code will start coding.)_ Floor: every boundary is a concrete action (`Must NOT write implementation code`), not a vague directive (`Must NOT overstep`).
 
 **4. Agent Responsibility Blocks** — Per agent:
 - **Scope:** Owned files and modules (specific paths)
-- **Deliverables:** Exact files this agent produces (e.g., `src/models/user.ts`, not "create the models")
-- **Definition of Done:** 3-5 measurable, yes/no checkable items
-- **Stop Conditions:** 2-3 specific situations where this agent halts and escalates
+- **Deliverables:** Exact files this agent produces. Floor: real file paths (`src/models/user.ts`), not categories ("create the models").
+- **Definition of Done:** 3-5 measurable, yes/no checkable items. Floor: each item is a binary check (`All unit tests passing`), not subjective (`code is clean`).
+- **Stop Conditions:** 2-3 specific situations where this agent halts and escalates. Floor: at least one explicit "if X happens, escalate to Y" rule.
 - **Test Requirements:** Unit and integration test targets
 
-**5. Interface Contracts** — For every agent pair that exchanges work: exact input format, output format, and one concrete example (real JSON, real CLI command, real file content — not format descriptions). No agent may pass data without a defined contract.
+**5. Interface Contracts** — For every agent pair that exchanges work: exact input format, output format, and one concrete example. _(Without contracts, two agents silently assume different schemas — the most common cause of integration failures in agent teams.)_ Floor: typed interface with at least 3 named fields, not `data: any`.
 
-**6. Approval Protocol** — The plan-first gate. **No code before plan approval.** Every plan must include:
+**6. Approval Protocol** — The plan-first gate. **No code before plan approval.** _(Without this gate, agents write code based on their interpretation of the spec, then discover conflicts at integration time — when the fix cost is 10x higher.)_ Every plan must include:
 1. Steps (ordered sequence)
 2. Files touched/created (exact paths)
 3. Data formats (schemas with examples)
@@ -108,22 +108,22 @@ The Critic reviews and approves the **plan** (not the code). Rejections include 
 
 **7. Stop Conditions (Global)** — When ALL agents must halt: source of truth ambiguous, security constraints affected, unplanned dependency needed, interface contract would break, cross-boundary file modification needed.
 
-**7.1. Escalation Protocol** — What happens after an agent halts:
+**7.1. Escalation Protocol** — What happens after an agent halts. _(Without a defined post-halt process, agents either deadlock or silently pick one interpretation — defeating governance.)_
 - **Escalation format:** title, decision needed, 2-3 options, recommendation, blocked work
 - All escalations go to the user
 - If user unavailable: log in `CLAUDE.md` as "Pending Decision," mark agent as `blocked` in `TEAM_AGENTS.json`, continue unrelated work
 - Agent-to-agent disputes: Critic arbitrates implementation disputes, Architect arbitrates architecture disputes. If arbiter is party to the dispute, escalate to user
 - Boundary overrides require explicit user approval — no agent may override another's "Must NOT"
 
-**8. Change Control (RFC Process)** — Any change not in the Source of Truth requires an RFC (why needed, impacted files, risk level, who approves) before implementation.
+**8. Change Control (RFC Process)** — Any change not in the Source of Truth requires an RFC (why needed, impacted files, risk level, who approves) before implementation. _(Without this, agents introduce unplanned features that look reasonable individually but collectively cause scope creep.)_
 
 **9. Operational Constraints** — Runtime, module system, sandboxed write paths, dependency policy, simplicity rule.
 
 **10. Security Invariants** — Unchangeable rules that must never be broken. If the user didn't provide any, use defaults: no secrets in code/logs, validate all user input, parameterized DB queries, escape HTML output. Also embed these in relevant agents' boundaries and stop conditions.
 
-**11. Documentation Sync Rule** — All agents update `CLAUDE.md` when making architectural decisions, using a structured format: context, alternatives considered, chosen approach, consequences, owner, date.
+**11. Documentation Sync Rule** — All agents update `CLAUDE.md` when making architectural decisions, using a structured format: context, alternatives considered, chosen approach, consequences, owner, date. _(Without structured decision logging, later agents undo earlier decisions because they don't know why things were built that way.)_
 
-**12. Budget and Simplicity Constraints** — Simplest implementation, no framework bloat, no premature abstractions, phase 2/3 must not block phase 1.
+**12. Budget and Simplicity Constraints** — Simplest implementation, no framework bloat, no premature abstractions, phase 2/3 must not block phase 1. _(Agents over-engineer by default — they add abstractions, utilities, and "nice to have" features. This section forces focus.)_
 
 **13. Agent Persistence** — Instructions to save the team to `TEAM_AGENTS.json` at session end and reload at session start (Session Resume Protocol). See Step 4 for the JSON schema.
 
@@ -133,11 +133,13 @@ Plus appendices:
 
 ### Governance Scaling
 
-Match governance depth to project complexity:
-- **Simple projects** (2-3 features, single service): Leaner output — fewer contracts, shorter DoD, combine sections where possible.
-- **Complex projects** (multi-service, regulated, large API surface): Full-depth output — more contracts, stricter gates, more granular stop conditions.
+Match governance depth to project complexity. Do not bury a simple CLI tool in the same ceremony as an enterprise platform.
 
-Do not bury a simple CLI tool in the same ceremony as an enterprise platform.
+| Project scope | Agents | Contracts | Example depth | DoD items |
+|---|---|---|---|---|
+| **Small** (1 domain, 1-2 features) | 3-4 | 2-4 | One-line pseudocode | 3 per agent |
+| **Medium** (2-3 domains, 3-5 features) | 4-5 | 5-8 | Typed interface snippets | 4-5 per agent |
+| **Large** (multi-domain, 5+ features) | 5-6 | 8-12+ | Full typed + sequenced | 5-6 per agent |
 
 ---
 
@@ -312,3 +314,79 @@ The system produces two files with distinct purposes:
 3. User picks "Update" — follow Session Resume Protocol
 4. Ask for new goals
 5. Regenerate with same agents, new goals, preserved history
+
+---
+
+## Reference Floor
+
+This section shows the **minimum quality bar** for three key elements: an agent responsibility block, an interface contract, and a governance decision. This is a floor, not a ceiling — complex projects should exceed this depth.
+
+### Agent Responsibility Block (floor)
+
+```markdown
+### Architect
+
+**Scope:** `prisma/schema.prisma`, `src/types/`, `docs/architecture.md`
+
+**Deliverables:**
+- Prisma schema (`prisma/schema.prisma`)
+- Shared TypeScript types (`src/types/task.ts`, `src/types/user.ts`)
+- Architecture decision log (`docs/architecture.md`)
+
+**Definition of Done:**
+- [ ] Prisma schema includes all models with field types, relations, and indexes
+- [ ] TypeScript types exported and importable by Implementer without modification
+- [ ] Every model has at least one example JSON object in the schema comments
+- [ ] No `any` types in shared type definitions
+
+**Stop Conditions — HALT and escalate if:**
+- `PROJECT_BRIEF.md` doesn't specify a data relationship (e.g., "can a task belong to multiple users?")
+- A proposed schema change would require Implementer to modify already-approved code
+- Security invariants would be affected by a schema decision (e.g., storing passwords)
+
+**Test Requirements:**
+- Unit tests for: type guard functions in `src/types/`
+- Integration tests for: Prisma migration runs cleanly, seed data loads without errors
+```
+
+### Interface Contract (floor)
+
+```markdown
+### Architect -> Implementer
+- **Input:** Prisma schema + TypeScript type definitions
+- **Output:** Implementation follows schema exactly; any deviation requires an RFC
+- **Example:**
+​```typescript
+// Architect outputs (src/types/task.ts):
+export interface Task {
+  id: string;
+  title: string;
+  status: "pending" | "in_progress" | "completed";
+  assigneeId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateTaskInput {
+  title: string;
+  assigneeId: string;
+  status?: Task["status"]; // defaults to "pending"
+}
+
+// Implementer consumes this type directly — no re-definition allowed.
+// If the Implementer needs a field not in this type, they file an RFC.
+​```
+```
+
+### Governance Decision (floor)
+
+```markdown
+## Decision: Use Prisma ORM over raw SQL
+- **Context:** Need a database access layer for PostgreSQL. Two options evaluated.
+- **Alternatives considered:** (1) Raw SQL with pg driver — maximum control, no abstraction cost. (2) Prisma ORM — type-safe queries, auto-generated migrations, schema-as-code.
+- **Chosen approach:** Prisma ORM. Type safety aligns with TypeScript-first stack. Schema-as-code gives Architect a single file to own. Migration history provides rollback capability.
+- **Consequences:** Adds ~2MB to node_modules. Complex queries may need `$queryRaw`. Implementer must use Prisma Client, not direct SQL.
+- **Owner:** Architect | **Date:** 2026-02-20
+```
+
+These three examples define the quality floor. Every agent block, contract, and decision in the generated output should meet or exceed this level of specificity.
